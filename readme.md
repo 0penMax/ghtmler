@@ -1,16 +1,16 @@
-# GHTTMLER
+# GHTMLER
 
-Tool for building html pages from parts(components) not to repeat the same code.
+Tool for building html pages from parts(components).
 
 How to use:
 
 - create files in root project folder with same name what your want html file and extension .ghtml
-- use special word (@include) in ghtml file for include
-- put all your static file in /static/ folder
+- use special word (@include) in ghtml file for include html file in output file
+- put all your static files in /static/ folder
 - run ghtmler
 - enjoy your site in dist folder
 
-example ingex.ghtml: 
+example index.ghtml: 
 ```$xslt
     <!DOCTYPE html>
     <html lang="en">
