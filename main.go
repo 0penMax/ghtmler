@@ -30,7 +30,7 @@ func main(){
 
 
 
-	files, err := ioutil.ReadDir(".")
+	files, err := os.ReadDir(".")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -96,7 +96,7 @@ func buildHtml(fpath string)error{
 
 
 func readAllFile(filepath string)([]string, error){
-	bytesRead, err := ioutil.ReadFile(filepath)
+	bytesRead, err := os.ReadFile(filepath)
 	if err!=nil{
 		return nil, err
 	}
