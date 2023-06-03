@@ -20,33 +20,21 @@ type fInfo struct {
 	hsum string
 }
 
-func readFiles(dirPath string) ([]fInfo, []error) {
-	var data []fInfo
-	var errors []error
-	filepath.Walk(dirPath, func(path string, info os.FileInfo, err error) error {
-		if err == nil {
-			if !info.IsDir() {
-				fileinfo, err := checkSum(path)
-				if err != nil {
-					errors = append(errors, err)
-					return nil
-				}
-				data = append(data, fileinfo)
-			}
-			return nil
-		}
-		errors = append(errors, err)
-		return nil
-	})
-	return data, errors
-}
 
-func readOnlyGhtmlFiles(dirPath string) ([]fInfo, []error) {
+func readFiles(dirPath string, readOnlyGhtmlFiles bool) ([]fInfo, []error) {
 	var data []fInfo
 	var errors []error
 	filepath.Walk(dirPath, func(path string, info os.FileInfo, err error) error {
 		if err == nil {
-			if !info.IsDir() && filepath.Ext(info.Name()) == ".ghtml" {
+
+			isFile := false
+			if readOnlyGhtmlFiles {
+				isFile = !info.IsDir() && filepath.Ext(info.Name()) == ".ghtml"
+			}else{
+				isFile = !info.IsDir() 
+			}
+
+			if isFile {
 
 				fileinfo, err := checkSum(path)
 				if err != nil {
@@ -85,7 +73,7 @@ func checkSum(filepath string) (fInfo, error) {
 
 func ScanFS(path string) (map[string]string, []error) {
 	mapOfInfo := make(map[string]string)
-	r, err := readFiles(path)
+	r, err := readFiles(path,false)
 	for _, v := range r {
 		mapOfInfo[v.path] = v.hsum
 	}
@@ -95,7 +83,7 @@ func ScanFS(path string) (map[string]string, []error) {
 
 func ScanGhtmlFilesOnly(path string) (map[string]string, []error) {
 	mapOfInfo := make(map[string]string)
-	r, err := readOnlyGhtmlFiles(path)
+	r, err := readFiles(path, true)
 	for _, v := range r {
 		mapOfInfo[v.path] = v.hsum
 	}

@@ -3,33 +3,32 @@ package fsPatrol
 
 import (
 	"goHtmlBuilder/filescaner"
-	"time"
 )
 
-
-
-type FsSnap struct {
-	SnapTime int64
-	SnapFS   map[string]string
-}
+type FsSnap  map[string]string
 
 
 func GetState() (FsSnap, []error) {
+	return getState(filescaner.ScanFS, filescaner.ScanGhtmlFilesOnly)
+}
+
+
+func getState(fScanFs, fScanGhtmlFilesOnly func(path string) (map[string]string, []error)) (FsSnap, []error) {
 	var snaps []FsSnap
 
 	for _, v := range []string{"components", "static"} {
-		snap, errs := filescaner.ScanFS(v)
+		snap, errs := fScanFs(v)
 		if len(errs) != 0 {
 			return FsSnap{}, errs
 		}
-		snaps = append(snaps, FsSnap{SnapTime: 0, SnapFS: snap})
+		snaps = append(snaps,  snap)
 	}
 
-	snap, errs := filescaner.ScanGhtmlFilesOnly(".")
+	snap, errs := fScanGhtmlFilesOnly(".")
 	if len(errs) != 0 {
 		return FsSnap{}, errs
 	}
-	snaps = append(snaps, FsSnap{SnapTime: 0, SnapFS: snap})
+	snaps = append(snaps,  snap)
 
 	oneSnap := combiningSnap(snaps)
 	return oneSnap, nil
@@ -38,11 +37,11 @@ func GetState() (FsSnap, []error) {
 func combiningSnap(snaps []FsSnap) FsSnap {
 	oneSnap := make(map[string]string)
 	for _, snap := range snaps {
-		for k, v := range snap.SnapFS {
+		for k, v := range snap {
 			oneSnap[k] = v
 		}
 	}
-	return FsSnap{SnapTime: time.Now().Unix(), SnapFS: oneSnap}
+	return  oneSnap
 }
 
 func IsDiffState(filesSourceState map[string]string, filesCurrentState map[string]string) bool {
@@ -56,10 +55,10 @@ func IsDiffState(filesSourceState map[string]string, filesCurrentState map[strin
 			return true //change file
 		}
 	}
-	for k, _ := range filesSourceState {
+	for k := range filesSourceState {
 		_, ok := filesCurrentState[k]
 		if !ok {
-			return true //delete file
+			return true //deleted file
 		}
 	}
 	return false
