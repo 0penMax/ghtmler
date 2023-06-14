@@ -75,7 +75,15 @@ func buildHtml(fpath string) error {
 		return err
 	}
 
-	err = write2FileLineByLine(resultStrs, "./dist/"+fname+".html")
+	file, err := os.OpenFile("./dist/"+fname+".html", os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0755)
+
+	defer file.Close()
+
+	if err != nil {
+		return err
+	}
+
+	err = write2FileLineByLine(file, resultStrs)
 
 	return err
 
@@ -92,16 +100,7 @@ func readAllFile(filepath string) ([]string, error) {
 	return lines, nil
 }
 
-func write2FileLineByLine(lines []string, filePath string) error {
-
-	file, err := os.OpenFile(filePath, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0755)
-
-	defer file.Close()
-
-	if err != nil {
-		return err
-	}
-
+func write2FileLineByLine(file *os.File, lines []string) error {
 	datawriter := bufio.NewWriter(file)
 
 	for _, data := range lines {
