@@ -24,9 +24,20 @@ func main() {
 	flag.BoolVar(&isServe, "serve", false, "auto serve file updates, you don't need to reexecute ghtmler")
 
 	flag.Parse()
+
+	State, errs := fsPatrol.GetState()
+	if errs != nil {
+		log.Fatal(err)
+	}
+
+	err = builder.Build(State.GetGhtmlFiles())
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	if isServe {
 		fmt.Println("serve...")
-		prevState, err := fsPatrol.GetState()
+		prevState := State
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -39,18 +50,13 @@ func main() {
 
 			if fsPatrol.IsDiffState(prevState, currentState) {
 				fmt.Println("rebuild")
-				err := builder.Build()
+				err := builder.Build(currentState.GetGhtmlFiles())
 				if err != nil {
 					log.Println(err)
 				}
 				prevState = currentState
 			}
 
-		}
-	} else {
-		err := builder.Build()
-		if err != nil {
-			log.Fatal(err)
 		}
 	}
 

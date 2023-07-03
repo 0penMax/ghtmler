@@ -12,29 +12,19 @@ import (
 	"strings"
 )
 
-const gExt = ".ghtml"
-
 const includeConst = "@include"
 
 const staticDirPath = "static/"
 
-func Build() error {
-	files, err := os.ReadDir(".")
-	if err != nil {
-		return err
-	}
-	for _, f := range files {
-		ext := filepath.Ext(f.Name())
-		if ext == gExt {
-			err = buildHtml("./" + f.Name())
-			if err != nil {
-				return errors.New(fmt.Sprintf("error build from file %s: %s", f.Name(), err.Error()))
-			}
+func Build(ghmlFiles []string) error {
+	for _, f := range ghmlFiles {
+		err := buildHtml("./" + f)
+		if err != nil {
+			return errors.New(fmt.Sprintf("error build from file %s: %s", f, err.Error()))
 		}
-
 	}
 
-	err = copyDir(staticDirPath, "dist/static")
+	err := copyDir(staticDirPath, "dist/static")
 	if err != nil {
 		return err
 	}
@@ -107,9 +97,7 @@ func write2FileLineByLine(file *os.File, lines []string) error {
 		_, _ = datawriter.WriteString(data + "\n")
 	}
 
-	datawriter.Flush()
-
-	return nil
+	return datawriter.Flush()
 }
 
 func removeExtraSpace(str string) string {
@@ -147,7 +135,7 @@ func getFileNameOnly(fpath string) string {
 	return fileName
 }
 
-func copy(src, dst string) (int64, error) {
+func copyAll(src, dst string) (int64, error) {
 	sourceFileStat, err := os.Stat(src)
 	if err != nil {
 		return 0, err
@@ -172,7 +160,7 @@ func copy(src, dst string) (int64, error) {
 	return nBytes, err
 }
 
-// copy dir with all file inside
+// dir with all file inside
 func copyDir(source, destination string) error {
 	var err error = filepath.Walk(source, func(path string, info os.FileInfo, err error) error {
 		var relPath string = strings.Replace(strings.ReplaceAll(path, "\\", "/"), source, "", 1)
@@ -182,7 +170,7 @@ func copyDir(source, destination string) error {
 		if info.IsDir() {
 			return os.MkdirAll(filepath.Join(destination, relPath), 0755)
 		} else {
-			_, err = copy(filepath.Join(source, relPath), filepath.Join(destination, relPath))
+			_, err = copyAll(filepath.Join(source, relPath), filepath.Join(destination, relPath))
 			return err
 		}
 	})

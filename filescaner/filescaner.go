@@ -11,7 +11,6 @@ import (
 )
 
 const (
-	MEGABYTE  = 1024 * 1024
 	filechunk = 8192
 )
 
@@ -20,18 +19,23 @@ type fInfo struct {
 	hsum string
 }
 
+const GhtmlExt = ".ghtml"
+
+func IsGhtmlFile(filename string) bool {
+	return filepath.Ext(filename) == GhtmlExt
+}
 
 func readFiles(dirPath string, readOnlyGhtmlFiles bool) ([]fInfo, []error) {
 	var data []fInfo
 	var errors []error
-	filepath.Walk(dirPath, func(path string, info os.FileInfo, err error) error {
+	err := filepath.Walk(dirPath, func(path string, info os.FileInfo, err error) error {
 		if err == nil {
 
 			isFile := false
 			if readOnlyGhtmlFiles {
-				isFile = !info.IsDir() && filepath.Ext(info.Name()) == ".ghtml"
-			}else{
-				isFile = !info.IsDir() 
+				isFile = !info.IsDir() && IsGhtmlFile(info.Name())
+			} else {
+				isFile = !info.IsDir()
 			}
 
 			if isFile {
@@ -48,6 +52,9 @@ func readFiles(dirPath string, readOnlyGhtmlFiles bool) ([]fInfo, []error) {
 		errors = append(errors, err)
 		return nil
 	})
+	if err != nil {
+		return nil, []error{err}
+	}
 	return data, errors
 }
 
@@ -63,17 +70,17 @@ func checkSum(filepath string) (fInfo, error) {
 	for i := uint64(0); i < blocks; i++ {
 		blocksize := int(math.Min(filechunk, float64(filesize-int64(i*filechunk))))
 		buf := make([]byte, blocksize)
-		file.Read(buf)
-		io.WriteString(hash, string(buf))
+		_, _ = file.Read(buf)
+		_, _ = io.WriteString(hash, string(buf))
 	}
 	fileinfo := fInfo{path: file.Name(), hsum: hex.EncodeToString(hash.Sum(nil))}
-	file.Close()
+	_ = file.Close()
 	return fileinfo, nil
 }
 
 func ScanFS(path string) (map[string]string, []error) {
 	mapOfInfo := make(map[string]string)
-	r, err := readFiles(path,false)
+	r, err := readFiles(path, false)
 	for _, v := range r {
 		mapOfInfo[v.path] = v.hsum
 	}

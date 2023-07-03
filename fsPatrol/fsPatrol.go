@@ -5,13 +5,21 @@ import (
 	"goHtmlBuilder/filescaner"
 )
 
-type FsSnap  map[string]string
+type FsSnap map[string]string //[path]hash
 
+func (s FsSnap) GetGhtmlFiles() (result []string) {
+	for p := range s {
+		if filescaner.IsGhtmlFile(p) {
+			result = append(result, p)
+		}
+	}
+
+	return
+}
 
 func GetState() (FsSnap, []error) {
 	return getState(filescaner.ScanFS, filescaner.ScanGhtmlFilesOnly)
 }
-
 
 func getState(fScanFs, fScanGhtmlFilesOnly func(path string) (map[string]string, []error)) (FsSnap, []error) {
 	var snaps []FsSnap
@@ -21,14 +29,14 @@ func getState(fScanFs, fScanGhtmlFilesOnly func(path string) (map[string]string,
 		if len(errs) != 0 {
 			return FsSnap{}, errs
 		}
-		snaps = append(snaps,  snap)
+		snaps = append(snaps, snap)
 	}
 
 	snap, errs := fScanGhtmlFilesOnly(".")
 	if len(errs) != 0 {
 		return FsSnap{}, errs
 	}
-	snaps = append(snaps,  snap)
+	snaps = append(snaps, snap)
 
 	oneSnap := combiningSnap(snaps)
 	return oneSnap, nil
@@ -41,7 +49,7 @@ func combiningSnap(snaps []FsSnap) FsSnap {
 			oneSnap[k] = v
 		}
 	}
-	return  oneSnap
+	return oneSnap
 }
 
 func IsDiffState(filesSourceState map[string]string, filesCurrentState map[string]string) bool {
@@ -63,5 +71,3 @@ func IsDiffState(filesSourceState map[string]string, filesCurrentState map[strin
 	}
 	return false
 }
-
-
