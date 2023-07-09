@@ -1,4 +1,4 @@
-package router
+package httpServer
 
 import (
 	"goHtmlBuilder/filescaner"
