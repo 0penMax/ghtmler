@@ -5,6 +5,12 @@ import (
 	"goHtmlBuilder/filescaner"
 )
 
+const (
+	GHTML_FOLDER      = "ghtml"
+	COMPONENTS_FOLDER = "components"
+	STATIC_FOLDER     = "static"
+)
+
 type FsSnap map[string]string //[path]hash
 
 func (s FsSnap) GetGhtmlFiles() (result []string) {
@@ -24,7 +30,7 @@ func GetState() (FsSnap, []error) {
 func getState(fScanFs, fScanGhtmlFilesOnly func(path string) (map[string]string, []error)) (FsSnap, []error) {
 	var snaps []FsSnap
 
-	for _, v := range []string{"components", "static"} {
+	for _, v := range []string{COMPONENTS_FOLDER, STATIC_FOLDER} {
 		snap, errs := fScanFs(v)
 		if len(errs) != 0 {
 			return FsSnap{}, errs
@@ -32,7 +38,7 @@ func getState(fScanFs, fScanGhtmlFilesOnly func(path string) (map[string]string,
 		snaps = append(snaps, snap)
 	}
 
-	snap, errs := fScanGhtmlFilesOnly(".")
+	snap, errs := fScanGhtmlFilesOnly(GHTML_FOLDER)
 	if len(errs) != 0 {
 		return FsSnap{}, errs
 	}

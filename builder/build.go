@@ -16,12 +16,33 @@ const includeConst = "@include"
 
 const staticDirPath = "static/"
 
-func Build(ghmlFiles []string) error {
+const LIVE_RELOAD_FOLDER = "./liveReload/"
+
+func Build(ghmlFiles []string, isLiveReload bool) error {
+	//err := os.MkdirAll("./dist/", 0777)
+	//if err != nil {
+	//	return err
+	//}
+
 	for _, f := range ghmlFiles {
-		err := buildHtml("./" + f)
+		content, err := buildHtml(f)
 		if err != nil {
 			return errors.New(fmt.Sprintf("error build from file %s: %s", f, err.Error()))
 		}
+		fname := getFileNameOnly(f)
+		err = writeLines2File("./dist/"+fname+".html", content)
+		if err != nil {
+			return err
+		}
+
+		if isLiveReload {
+			err = writeLines2File(LIVE_RELOAD_FOLDER+fname+".html", injectLiveReloadScript(content))
+			if err != nil {
+				return err
+			}
+
+		}
+
 	}
 
 	err := copyDir(staticDirPath, "dist/static")
@@ -32,10 +53,10 @@ func Build(ghmlFiles []string) error {
 	return nil
 }
 
-func buildHtml(fpath string) error {
+func buildHtml(fpath string) ([]string, error) {
 	fileStrs, err := readAllFile(fpath)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	var resultStrs []string
@@ -47,7 +68,7 @@ func buildHtml(fpath string) error {
 
 			htmlStrs, err := readAllFile(includePath)
 			if err != nil {
-				return err
+				return nil, err
 			}
 
 			resultStrs = append(resultStrs, htmlStrs...)
@@ -58,25 +79,20 @@ func buildHtml(fpath string) error {
 		resultStrs = append(resultStrs, s)
 	}
 
-	fname := getFileNameOnly(fpath)
+	return resultStrs, nil
 
-	err = os.MkdirAll("./dist/", os.ModeDir)
-	if err != nil {
+}
+
+func writeLines2File(fpath string, content []string) error {
+	if err := os.MkdirAll(filepath.Dir(fpath), 0770); err != nil {
 		return err
 	}
-
-	file, err := os.OpenFile("./dist/"+fname+".html", os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0755)
-
+	file, err := os.OpenFile(fpath, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0644)
 	defer file.Close()
-
 	if err != nil {
 		return err
 	}
-
-	err = write2FileLineByLine(file, resultStrs)
-
-	return err
-
+	return write2FileLineByLine(file, content)
 }
 
 func readAllFile(filepath string) ([]string, error) {
@@ -151,6 +167,9 @@ func copyAll(src, dst string) (int64, error) {
 	}
 	defer source.Close()
 
+	if err := os.MkdirAll(filepath.Dir(dst), 0770); err != nil {
+		return 0, err
+	}
 	destination, err := os.Create(dst)
 	if err != nil {
 		return 0, err

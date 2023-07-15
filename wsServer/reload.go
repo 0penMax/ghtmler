@@ -1,6 +1,6 @@
 //base on https://github.com/markvincze/golang-reload-browser
 
-package main
+package ws_server
 
 import (
 	"bytes"

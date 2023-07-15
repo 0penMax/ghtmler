@@ -5,12 +5,15 @@ import (
 	"fmt"
 	"goHtmlBuilder/builder"
 	"goHtmlBuilder/fsPatrol"
+	"goHtmlBuilder/httpServer"
+	ws_server "goHtmlBuilder/wsServer"
 	"log"
 	"os"
 	"time"
 )
 
 func main() {
+	fmt.Println("start")
 	f, err := os.OpenFile("error.log", os.O_RDWR|os.O_CREATE|os.O_APPEND, 0644)
 	if err != nil {
 		log.Fatalf("error opening file: %v", err)
@@ -25,18 +28,22 @@ func main() {
 
 	flag.Parse()
 
+	fmt.Println("flag parsed")
+
 	State, errs := fsPatrol.GetState()
 	if errs != nil {
-		log.Fatal(err)
+		log.Fatal(errs)
 	}
 
-	err = builder.Build(State.GetGhtmlFiles())
+	err = builder.Build(State.GetGhtmlFiles(), isServe)
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	if isServe {
 		fmt.Println("serve...")
+		ws_server.StartServer()
+		httpServer.RunServer()
 		prevState := State
 		if err != nil {
 			log.Fatal(err)
@@ -50,10 +57,11 @@ func main() {
 
 			if fsPatrol.IsDiffState(prevState, currentState) {
 				fmt.Println("rebuild")
-				err := builder.Build(currentState.GetGhtmlFiles())
+				err := builder.Build(currentState.GetGhtmlFiles(), isServe)
 				if err != nil {
 					log.Println(err)
 				}
+				ws_server.SendReload()
 				prevState = currentState
 			}
 
