@@ -46,6 +46,7 @@ example index.ghtml:
 ```
 project structure:
 
+```
 ├── ghtml
 │   ├── **/*.ghtml
 ├── dist
@@ -59,5 +60,6 @@ project structure:
 │   ├── temp folder for serve flag
 ├── runGhtml
 └── .gitignore
+```
     
 
