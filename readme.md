@@ -49,6 +49,11 @@ project structure:
 ```
 ├── ghtml
 │   ├── **/*.ghtml
+├── component
+│   ├── index
+│   │   ├── *.html
+│   ├── shared
+│   │   ├── *.html
 ├── dist
 │   ├── static
 │   │   ├── **/*.css
