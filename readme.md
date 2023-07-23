@@ -43,7 +43,7 @@ example index.ghtml:
  
         </body>
     </html>
-
+```
 project structure:
 
 ├── ghtml
@@ -60,6 +60,4 @@ project structure:
 ├── runGhtml
 └── .gitignore
     
-
-```
 
