@@ -1,0 +1,20 @@
+ <!DOCTYPE html>
+    <html lang="en">
+
+        <head>
+            <meta charset="utf-8" />
+            <title>example</title>
+            <link rel="stylesheet" type="text/css" href="static/style.css" />
+        </head>
+
+        <body>
+
+        <div class="grid-2">
+               @include ./components/section1.html
+               @include ./components/section2.html
+
+            </div>
+
+            </body>
+
+    </html>

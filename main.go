@@ -10,6 +10,7 @@ import (
 	"log"
 	"os"
 	"time"
+	"errors"
 )
 
 func main() {
@@ -28,7 +29,16 @@ func main() {
 
 	flag.Parse()
 
-	fmt.Println("flag parsed")
+	necessaryFolders:= []string{"dist", "ghtml", "liveReload", "static","components"}
+	for _, path := range necessaryFolders {
+		if _, err := os.Stat(path); errors.Is(err, os.ErrNotExist) {
+			err := os.Mkdir(path, os.ModePerm)
+			if err != nil {
+				log.Println(err)
+			}
+		}
+	}
+	
 
 	State, errs := fsPatrol.GetState()
 	if errs != nil {
