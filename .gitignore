@@ -1,1 +1,9 @@
 .idea
+.DS_Store
+components/*
+dist/*
+static/*
+liveReload/*
+ghtml/*
+error.log
+test
