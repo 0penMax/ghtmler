@@ -4,11 +4,13 @@ Tool for building html pages from parts(components).
 
 How to use:
 
-- create files in root project folder with same name what your want html file and extension .ghtml
+- create files in /ghtml/ folder with same name what your want html file and extension .ghtml
 - use special word (@include) in ghtml file for include html file in output file
 - put all your static files in /static/ folder
 - run ghtmler
 - enjoy your site in dist folder
+
+You can use flag -serve for realtime rebuild and how changes.
 
 example index.ghtml: 
 ```$xslt
@@ -40,7 +42,29 @@ example index.ghtml:
         @include ./components/shared/footer.html
  
         </body>
-    
     </html>
 ```
+project structure:
+
+```
+├── ghtml
+│   ├── **/*.ghtml
+├── component
+│   ├── index
+│   │   ├── *.html
+│   ├── shared
+│   │   ├── *.html
+├── dist
+│   ├── static
+│   │   ├── **/*.css
+│   │   ├── **/*.js
+│   ├── result.html
+├── static
+│   ├── style.css
+├── liveReload
+│   ├── temp folder for serve flag
+├── runGhtml
+└── .gitignore
+```
+    
 
