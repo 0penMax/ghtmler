@@ -41,3 +41,39 @@ func TestGetAllClasses(t *testing.T) {
 		})
 	}
 }
+
+func TestGetAllIds(t *testing.T) {
+	type args struct {
+		htmlCode string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    []string
+		wantErr bool
+	}{
+		{
+			name:    "test1",
+			args:    args{"<p id='hello'><span id='test'> world</span> </p>"},
+			want:    []string{"hello", "test"},
+			wantErr: false,
+		}, {
+			name:    "test2",
+			args:    args{"<p id='hello'><span id='test'> world</span> </p> <p id='outside'>text</p>"},
+			want:    []string{"hello", "test", "outside"},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := GetAllIds(tt.args.htmlCode)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("GetAllIds() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("GetAllIds() got = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}

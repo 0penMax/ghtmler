@@ -30,3 +30,29 @@ func GetAllClasses(htmlCode string) ([]string, error) {
 
 	return classes, nil
 }
+
+func GetAllIds(htmlCode string) ([]string, error) {
+	doc, err := html.Parse(strings.NewReader(htmlCode))
+	if err != nil {
+		return nil, err
+	}
+
+	var ids []string
+
+	var f func(*html.Node)
+	f = func(n *html.Node) {
+		if n.Type == html.ElementNode {
+			for _, el := range n.Attr {
+				if el.Key == "id" {
+					ids = append(ids, el.Val)
+				}
+			}
+		}
+		for c := n.FirstChild; c != nil; c = c.NextSibling {
+			f(c)
+		}
+	}
+	f(doc)
+
+	return ids, nil
+}
