@@ -1,4 +1,3 @@
-// fsPatrol project fsPatrol.go
 package fsPatrol
 
 import (
