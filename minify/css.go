@@ -7,6 +7,11 @@ import (
 	"github.com/tdewolff/minify/v2/css"
 )
 
+type Params struct { // TODO realize using optimizer on build
+	IsMinifyCss bool
+	IsMinifyJs  bool
+}
+
 func MinifyCSS(cssContent string) (string, error) {
 	// Create a new minifier
 	m := minify.New()

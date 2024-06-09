@@ -213,3 +213,190 @@ func compareSelectors(a, b []Selector) bool {
 	}
 	return true
 }
+
+func TestGetCSSFileNamesFromHtml(t *testing.T) {
+	tests := []struct {
+		html       string
+		expected   []string
+		shouldFail bool
+	}{
+		{
+			html: `
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <link rel="stylesheet" href="styles.css">
+                <link rel="stylesheet" href="theme.css">
+            </head>
+            <body>
+                <h1>Hello, World!</h1>
+            </body>
+            </html>
+            `,
+			expected: []string{"styles.css", "theme.css"},
+		},
+		{
+			html: `
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <link rel="alternate" href="feed.xml">
+            </head>
+            <body>
+                <h1>Hello, World!</h1>
+            </body>
+            </html>
+            `,
+			expected: []string{},
+		},
+		{
+			html: `
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <link rel="stylesheet" href="">
+            </head>
+            <body>
+                <h1>Hello, World!</h1>
+            </body>
+            </html>
+            `,
+			expected: []string{},
+		},
+		{
+			html:       "<html><head><link rel=\"stylesheet\" href=\"styles.css\"></head><body><h1>Hello</h1></body></html>",
+			expected:   []string{"styles.css"},
+			shouldFail: false,
+		},
+		{
+			html:       "<html><head><link rel=\"stylesheet\" href=\"\"></head><body><h1>Hello</h1></body></html>",
+			expected:   []string{},
+			shouldFail: false,
+		},
+		{
+			html:       "<html><head><link rel=\"stylesheet\"></head><body><h1>Hello</h1></body></html>",
+			expected:   []string{},
+			shouldFail: false,
+		},
+		{
+			html:       "<html><head><link rel=\"alternate\" href=\"feed.xml\"></head><body><h1>Hello</h1></body></html>",
+			expected:   []string{},
+			shouldFail: false,
+		},
+		{
+			html: `
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <link rel="stylesheet" href="main.css">
+                <link rel="stylesheet" href="theme.css">
+                <link rel="icon" href="favicon.ico">
+            </head>
+            <body>
+                <h1>Hello, World!</h1>
+            </body>
+            </html>
+            `,
+			expected: []string{"main.css", "theme.css"},
+		},
+		{
+			html: `
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <link rel="stylesheet" href="css/styles1.css">
+                <link rel="stylesheet" href="css/styles2.css">
+                <link rel="stylesheet" href="css/styles3.css">
+            </head>
+            <body>
+                <h1>Hello, World!</h1>
+            </body>
+            </html>
+            `,
+			expected: []string{"styles1.css", "styles2.css", "styles3.css"},
+		},
+		{
+			html:       "",
+			expected:   []string{},
+			shouldFail: false,
+		},
+	}
+
+	for _, test := range tests {
+		r := strings.NewReader(test.html)
+		cssFiles, err := GetCSSFileNamesFromHtml(r)
+		if test.shouldFail {
+			if err == nil {
+				t.Errorf("Expected an error for input: %s", test.html)
+			}
+		} else {
+			if err != nil {
+				t.Errorf("Did not expect an error for input: %s, got: %v", test.html, err)
+			}
+			if len(cssFiles) != len(test.expected) {
+				t.Errorf("Expected %d CSS files, got %d for input: %s", len(test.expected), len(cssFiles), test.html)
+			}
+			for i, css := range test.expected {
+				if cssFiles[i] != css {
+					t.Errorf("Expected CSS file %s, got %s for input: %s", css, cssFiles[i], test.html)
+				}
+			}
+		}
+	}
+}
+
+// TestGetFileName tests the GetFileName function with different full path inputs.
+func TestGetFileName(t *testing.T) {
+	tests := []struct {
+		fullPath string
+		expected string
+	}{
+		{
+			fullPath: "/home/user/documents/report.pdf",
+			expected: "report.pdf",
+		},
+		{
+			fullPath: "C:\\Users\\user\\documents\\report.pdf",
+			expected: "report.pdf",
+		},
+		{
+			fullPath: "/var/log/syslog",
+			expected: "syslog",
+		},
+		{
+			fullPath: "report.pdf",
+			expected: "report.pdf",
+		},
+		{
+			fullPath: "/home/user/music/song.mp3",
+			expected: "song.mp3",
+		},
+		{
+			fullPath: "C:\\path\\to\\file\\image.png",
+			expected: "image.png",
+		},
+		{
+			fullPath: "/relative/path/to/file.txt",
+			expected: "file.txt",
+		},
+		{
+			fullPath: "filename.ext",
+			expected: "filename.ext",
+		},
+		{
+			fullPath: "",
+			expected: "",
+		},
+		{
+			fullPath: "/",
+			expected: "",
+		},
+	}
+
+	for i, test := range tests {
+		result := getFileName(test.fullPath)
+		if result != test.expected {
+			t.Errorf("Test case %d: GetFileName(%q) = %q; want %q", i+1, test.fullPath, result, test.expected)
+		}
+	}
+}
