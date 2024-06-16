@@ -4,7 +4,10 @@ import (
 	"bufio"
 	"errors"
 	"fmt"
+	"goHtmlBuilder/css"
+	"goHtmlBuilder/optimizer"
 	"io"
+	"io/ioutil"
 	"os"
 	"path"
 	"path/filepath"
@@ -18,29 +21,88 @@ const staticDirPath = "static/"
 
 const LIVE_RELOAD_FOLDER = "./liveReload/"
 
-func Build(ghmlFiles []string, isLiveReload bool) error {
-	//err := os.MkdirAll("./dist/", 0777)
-	//if err != nil {
-	//	return err
-	//}
+type GhtmlFile struct {
+	filename     string
+	content      []string
+	cssFiles     []string
+	isLiveReload bool
+}
 
-	for _, f := range ghmlFiles {
-		content, err := buildHtml(f)
-		if err != nil {
-			return errors.New(fmt.Sprintf("error build from file %s: %s", f, err.Error()))
-		}
-		fname := getFileNameOnly(f)
-		err = writeLines2File("./dist/"+fname+".html", content)
+// TODO test this func
+// TODO add minify
+func (g *GhtmlFile) save() error {
+	err := writeLines2File("./dist/"+g.filename+".html", g.content)
+	if err != nil {
+		return err
+	}
+
+	selectors, err := optimizer.GetAllSelectors(strings.Join(g.content, ""))
+
+	for _, cssFileName := range g.cssFiles {
+
+		cssContent, err := readAllFile(filepath.Join("static/css", cssFileName))
 		if err != nil {
 			return err
 		}
 
-		if isLiveReload {
-			err = writeLines2File(LIVE_RELOAD_FOLDER+fname+".html", injectLiveReloadScript(content))
-			if err != nil {
-				return err
-			}
+		styles, err := css.Parse(strings.Join(cssContent, ""))
+		if err != nil {
+			return err
+		}
+		OptimizedStyles := css.RemoveUnusedSelectors(*styles, selectors)
 
+		err = saveToFile(filepath.Join("dist/static", cssFileName), OptimizedStyles.String())
+		if err != nil {
+			return err
+		}
+
+	}
+
+	if g.isLiveReload {
+		err = writeLines2File(LIVE_RELOAD_FOLDER+g.filename+".html", injectLiveReloadScript(g.content))
+		if err != nil {
+			return err
+		}
+
+	}
+
+	return nil
+}
+
+func BuildGthmlFile(file string, isLiveReload bool) (GhtmlFile, error) {
+	content, err := buildHtml(file)
+	if err != nil {
+		return GhtmlFile{}, errors.New(fmt.Sprintf("error build from file %s: %s", file, err.Error()))
+	}
+	fname := getFileNameOnly(file)
+
+	r := strings.NewReader(strings.Join(content, ""))
+
+	cssFiles, err := optimizer.GetCSSFileNamesFromHtml(r)
+
+	ghtmlFile := GhtmlFile{
+		filename:     fname,
+		content:      content,
+		cssFiles:     cssFiles,
+		isLiveReload: isLiveReload,
+	}
+
+	return ghtmlFile, nil
+
+}
+
+func Build(ghmlFiles []string, isLiveReload bool) error {
+
+	for _, f := range ghmlFiles {
+
+		ghtmlFile, err := BuildGthmlFile(f, isLiveReload)
+		if err != nil {
+			return err
+		}
+
+		err = ghtmlFile.save()
+		if err != nil {
+			return err
 		}
 
 	}
@@ -81,6 +143,18 @@ func buildHtml(fpath string) ([]string, error) {
 
 	return resultStrs, nil
 
+}
+
+// saveToFile saves the provided string to the specified file.
+// If the file already exists, it will be overwritten.
+func saveToFile(filename, data string) error {
+	// Open the file with write permissions. Create it if it doesn't exist.
+	// The file permissions are set to 0644, meaning read and write for the owner, and read-only for others.
+	err := ioutil.WriteFile(filename, []byte(data), 0644)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func writeLines2File(fpath string, content []string) error {

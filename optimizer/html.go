@@ -91,7 +91,7 @@ func GetAllSelectors(htmlCode string) ([]Selector, error) {
 					s := strings.ReplaceAll(el.Val, " ", "")
 					if s != "" {
 						selectors = append(selectors, Selector{
-							Value: s,
+							Value: "#" + s,
 							SType: selectorId,
 						})
 					}
