@@ -15,9 +15,24 @@ const (
 	selectorId    SelectorType = "id"
 )
 
+const staticCssPath = "static/css"
+const distStaticCssPath = "dist/static"
+
 type Selector struct {
 	Value string
 	SType SelectorType
+}
+
+type CssFile struct {
+	fileName string
+}
+
+func (f CssFile) GetContentPath() string {
+	return filepath.Join(staticCssPath, f.fileName)
+}
+
+func (f CssFile) GetSavePath() string {
+	return filepath.Join(distStaticCssPath, f.fileName)
 }
 
 func getFileName(fullPath string) string {
@@ -27,8 +42,8 @@ func getFileName(fullPath string) string {
 	return filepath.Base(fullPath)
 }
 
-func GetCSSFileNamesFromHtml(r io.Reader) ([]string, error) { //TODO realize use this function on build
-	var cssFiles []string
+func GetCSSFileNamesFromHtml(r io.Reader) ([]CssFile, error) {
+	var cssFiles []CssFile
 	tokenizer := html.NewTokenizer(r)
 
 	for {
@@ -55,7 +70,7 @@ func GetCSSFileNamesFromHtml(r io.Reader) ([]string, error) { //TODO realize use
 				}
 				if isStylesheet && href != "" {
 
-					cssFiles = append(cssFiles, getFileName(href))
+					cssFiles = append(cssFiles, CssFile{getFileName(href)})
 				}
 			}
 		}

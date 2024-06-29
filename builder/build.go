@@ -5,9 +5,9 @@ import (
 	"errors"
 	"fmt"
 	"goHtmlBuilder/css"
+	"goHtmlBuilder/minify"
 	"goHtmlBuilder/optimizer"
 	"io"
-	"io/ioutil"
 	"os"
 	"path"
 	"path/filepath"
@@ -24,8 +24,9 @@ const LIVE_RELOAD_FOLDER = "./liveReload/"
 type GhtmlFile struct {
 	filename     string
 	content      []string
-	cssFiles     []string
+	cssFilesPath []optimizer.CssFile
 	isLiveReload bool
+	minifyParams minify.Params
 }
 
 // TODO test this func
@@ -38,9 +39,9 @@ func (g *GhtmlFile) save() error {
 
 	selectors, err := optimizer.GetAllSelectors(strings.Join(g.content, ""))
 
-	for _, cssFileName := range g.cssFiles {
+	for _, cssFile := range g.cssFilesPath {
 
-		cssContent, err := readAllFile(filepath.Join("static/css", cssFileName))
+		cssContent, err := readAllFile(cssFile.GetContentPath())
 		if err != nil {
 			return err
 		}
@@ -51,7 +52,7 @@ func (g *GhtmlFile) save() error {
 		}
 		OptimizedStyles := css.RemoveUnusedSelectors(*styles, selectors)
 
-		err = saveToFile(filepath.Join("dist/static", cssFileName), OptimizedStyles.String())
+		err = saveToFile(cssFile.GetSavePath(), OptimizedStyles.String())
 		if err != nil {
 			return err
 		}
@@ -69,7 +70,7 @@ func (g *GhtmlFile) save() error {
 	return nil
 }
 
-func BuildGthmlFile(file string, isLiveReload bool) (GhtmlFile, error) {
+func BuildGthmlFile(file string, isLiveReload bool, minifyParams minify.Params) (GhtmlFile, error) {
 	content, err := buildHtml(file)
 	if err != nil {
 		return GhtmlFile{}, errors.New(fmt.Sprintf("error build from file %s: %s", file, err.Error()))
@@ -78,24 +79,25 @@ func BuildGthmlFile(file string, isLiveReload bool) (GhtmlFile, error) {
 
 	r := strings.NewReader(strings.Join(content, ""))
 
-	cssFiles, err := optimizer.GetCSSFileNamesFromHtml(r)
+	cssPaths, err := optimizer.GetCSSFileNamesFromHtml(r)
 
 	ghtmlFile := GhtmlFile{
 		filename:     fname,
 		content:      content,
-		cssFiles:     cssFiles,
+		cssFilesPath: cssPaths,
 		isLiveReload: isLiveReload,
+		minifyParams: minifyParams,
 	}
 
 	return ghtmlFile, nil
 
 }
 
-func Build(ghmlFiles []string, isLiveReload bool) error {
+func Build(ghmlFiles []string, isLiveReload bool, minifyParam minify.Params) error {
 
 	for _, f := range ghmlFiles {
 
-		ghtmlFile, err := BuildGthmlFile(f, isLiveReload)
+		ghtmlFile, err := BuildGthmlFile(f, isLiveReload, minifyParam)
 		if err != nil {
 			return err
 		}
@@ -150,7 +152,7 @@ func buildHtml(fpath string) ([]string, error) {
 func saveToFile(filename, data string) error {
 	// Open the file with write permissions. Create it if it doesn't exist.
 	// The file permissions are set to 0644, meaning read and write for the owner, and read-only for others.
-	err := ioutil.WriteFile(filename, []byte(data), 0644)
+	err := os.WriteFile(filename, []byte(data), 0644)
 	if err != nil {
 		return err
 	}
