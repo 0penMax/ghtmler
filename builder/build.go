@@ -1,12 +1,11 @@
 package builder
 
 import (
-	"bufio"
 	"errors"
 	"fmt"
-	"goHtmlBuilder/css"
 	"goHtmlBuilder/minify"
 	"goHtmlBuilder/optimizer"
+	"goHtmlBuilder/utils"
 	"io"
 	"os"
 	"path"
@@ -24,7 +23,7 @@ const LIVE_RELOAD_FOLDER = "./liveReload/"
 type GhtmlFile struct {
 	filename     string
 	content      []string
-	cssFilesPath []optimizer.CssFile
+	cssFiles     []optimizer.CssFile
 	isLiveReload bool
 	minifyParams minify.Params
 }
@@ -32,27 +31,21 @@ type GhtmlFile struct {
 // TODO test this func
 // TODO add minify
 func (g *GhtmlFile) save() error {
-	err := writeLines2File("./dist/"+g.filename+".html", g.content)
+	err := utils.WriteLines2File("./dist/"+g.filename+".html", g.content)
 	if err != nil {
 		return err
 	}
 
 	selectors, err := optimizer.GetAllSelectors(strings.Join(g.content, ""))
 
-	for _, cssFile := range g.cssFilesPath {
+	for _, cssFile := range g.cssFiles {
 
-		cssContent, err := readAllFile(cssFile.GetContentPath())
+		OptimizedStyles, err := cssFile.GetOptimizedContent(selectors)
 		if err != nil {
 			return err
 		}
 
-		styles, err := css.Parse(strings.Join(cssContent, ""))
-		if err != nil {
-			return err
-		}
-		OptimizedStyles := css.RemoveUnusedSelectors(*styles, selectors)
-
-		err = saveToFile(cssFile.GetSavePath(), OptimizedStyles.String())
+		err = saveToFile(cssFile.GetSavePath(), OptimizedStyles)
 		if err != nil {
 			return err
 		}
@@ -60,7 +53,7 @@ func (g *GhtmlFile) save() error {
 	}
 
 	if g.isLiveReload {
-		err = writeLines2File(LIVE_RELOAD_FOLDER+g.filename+".html", injectLiveReloadScript(g.content))
+		err = utils.WriteLines2File(LIVE_RELOAD_FOLDER+g.filename+".html", injectLiveReloadScript(g.content))
 		if err != nil {
 			return err
 		}
@@ -84,7 +77,7 @@ func BuildGthmlFile(file string, isLiveReload bool, minifyParams minify.Params) 
 	ghtmlFile := GhtmlFile{
 		filename:     fname,
 		content:      content,
-		cssFilesPath: cssPaths,
+		cssFiles:     cssPaths,
 		isLiveReload: isLiveReload,
 		minifyParams: minifyParams,
 	}
@@ -118,7 +111,7 @@ func Build(ghmlFiles []string, isLiveReload bool, minifyParam minify.Params) err
 }
 
 func buildHtml(fpath string) ([]string, error) {
-	fileStrs, err := readAllFile(fpath)
+	fileStrs, err := utils.ReadAllFile(fpath)
 	if err != nil {
 		return nil, err
 	}
@@ -130,7 +123,7 @@ func buildHtml(fpath string) ([]string, error) {
 			s = strings.ReplaceAll(s, includeConst, "")
 			includePath := removeSpaceAndTab(s)
 
-			htmlStrs, err := readAllFile(includePath)
+			htmlStrs, err := utils.ReadAllFile(includePath)
 			if err != nil {
 				return nil, err
 			}
@@ -159,58 +152,10 @@ func saveToFile(filename, data string) error {
 	return nil
 }
 
-func writeLines2File(fpath string, content []string) error {
-	if err := os.MkdirAll(filepath.Dir(fpath), 0770); err != nil {
-		return err
-	}
-	file, err := os.OpenFile(fpath, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0644)
-	defer file.Close()
-	if err != nil {
-		return err
-	}
-	return write2FileLineByLine(file, content)
-}
-
-func readAllFile(filepath string) ([]string, error) {
-	bytesRead, err := os.ReadFile(filepath)
-	if err != nil {
-		return nil, err
-	}
-	file_content := string(bytesRead)
-	file_content = removeHtmlComment(file_content)
-	lines := strings.Split(file_content, "\n")
-	return lines, nil
-}
-
-func write2FileLineByLine(file *os.File, lines []string) error {
-	datawriter := bufio.NewWriter(file)
-
-	for _, data := range lines {
-		_, _ = datawriter.WriteString(data + "\n")
-	}
-
-	return datawriter.Flush()
-}
-
 func removeExtraSpace(str string) string {
 	// the character class \s matches a space, tab, new line, carriage return or form feed, and + says “one or more of those”.
 	space := regexp.MustCompile(`\s{2,}`)
 	return space.ReplaceAllString(str, " ")
-}
-
-func removeHtmlComment(str string) string {
-
-	for {
-		startIndex := strings.Index(str, "<!--")
-		endIndex := strings.Index(str, "-->")
-		if startIndex == -1 || endIndex == -1 {
-			break
-		}
-
-		str = str[:startIndex] + str[endIndex+3:]
-	}
-
-	return str
 }
 
 func removeSpaceAndTab(str string) string {

@@ -23,18 +23,6 @@ type Selector struct {
 	SType SelectorType
 }
 
-type CssFile struct {
-	fileName string
-}
-
-func (f CssFile) GetContentPath() string {
-	return filepath.Join(staticCssPath, f.fileName)
-}
-
-func (f CssFile) GetSavePath() string {
-	return filepath.Join(distStaticCssPath, f.fileName)
-}
-
 func getFileName(fullPath string) string {
 	if fullPath == "" || fullPath == "/" || fullPath == "\\" {
 		return ""
