@@ -337,7 +337,7 @@ func TestGetCSSFileNamesFromHtml(t *testing.T) {
 				t.Errorf("Expected %d CSS files, got %d for input: %s", len(test.expected), len(cssFiles), test.html)
 			}
 			for i, css := range test.expected {
-				if cssFiles[i] != css {
+				if cssFiles[i].fileName != css {
 					t.Errorf("Expected CSS file %s, got %s for input: %s", css, cssFiles[i], test.html)
 				}
 			}

@@ -1,6 +1,7 @@
-package css
+package optimizer
 
 import (
+	"goHtmlBuilder/css"
 	"reflect"
 	"testing"
 )
@@ -55,32 +56,35 @@ p {
 
 func TestRemoveUnusedSelectors(t *testing.T) {
 
-	ParsedCss, err := Parse(testCss)
+	ParsedCss, err := css.Parse(testCss)
 	if err != nil {
 		t.Fatal("Failed to parse css", err, testCss)
 	}
 
 	type args struct {
-		css           Stylesheet
-		usedSelectors []string
+		css           css.Stylesheet
+		usedSelectors []Selector
 	}
 	tests := []struct {
 		name string
 		args args
-		want Stylesheet
+		want css.Stylesheet
 	}{
 		{
 			name: "test1",
 			args: args{
-				css:           *ParsedCss,
-				usedSelectors: []string{"h1"},
+				css: *ParsedCss,
+				usedSelectors: []Selector{{
+					Value: "h1",
+					SType: selectorTag,
+				}},
 			},
-			want: Stylesheet{
-				Rules: []*Rule{
+			want: css.Stylesheet{
+				Rules: []*css.Rule{
 					{
 						Prelude:   "h6, .h6, h5, .h5, h4, .h4, h3, .h3, h2, .h2, h1, .h1",
 						Selectors: []string{"h6", ".h6", "h5", ".h5", "h4", ".h4", "h3", ".h3", "h2", ".h2", "h1", ".h1"},
-						Declarations: []*Declaration{
+						Declarations: []*css.Declaration{
 							{
 								Property: "margin-top",
 								Value:    "0",
@@ -102,7 +106,7 @@ func TestRemoveUnusedSelectors(t *testing.T) {
 					{
 						Prelude:   "h1, .h1",
 						Selectors: []string{"h1", ".h1"},
-						Declarations: []*Declaration{
+						Declarations: []*css.Declaration{
 							{
 								Property: "font-size",
 								Value:    "calc(1.375rem + 1.5vw)",
@@ -113,16 +117,16 @@ func TestRemoveUnusedSelectors(t *testing.T) {
 					},
 
 					{
-						Kind:    AtRule,
+						Kind:    css.AtRule,
 						Name:    "@media",
 						Prelude: "(min-width: 1200px)",
 
-						Rules: []*Rule{
+						Rules: []*css.Rule{
 							{
-								Kind:      QualifiedRule,
+								Kind:      css.QualifiedRule,
 								Prelude:   "h1, .h1",
 								Selectors: []string{"h1", ".h1"},
-								Declarations: []*Declaration{
+								Declarations: []*css.Declaration{
 									{
 										Property: "font-size",
 										Value:    "2.5rem",

@@ -29,7 +29,7 @@ func (f CssFile) GetOptimizedContent(usedSelectors []Selector) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	OptimizedStyles := css.RemoveUnusedSelectors(*styles, usedSelectors)
+	OptimizedStyles := RemoveUnusedSelectors(*styles, usedSelectors)
 
 	return OptimizedStyles.String(), nil
 }

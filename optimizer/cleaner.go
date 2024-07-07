@@ -1,16 +1,16 @@
-package css
+package optimizer
 
 import (
-	"goHtmlBuilder/optimizer"
+	"goHtmlBuilder/css"
 	"slices"
 )
 
-func RemoveUnusedSelectors(css Stylesheet, usedSelectors []optimizer.Selector) Stylesheet {
+func RemoveUnusedSelectors(cssContent css.Stylesheet, usedSelectors []Selector) css.Stylesheet {
 	sl := getStringSlice(usedSelectors)
 
-	var newCss Stylesheet
-	for _, rule := range css.Rules {
-		if rule.Kind == AtRule {
+	var newCss css.Stylesheet
+	for _, rule := range cssContent.Rules {
+		if rule.Kind == css.AtRule {
 			newCss.Rules = append(newCss.Rules, rule)
 			continue
 		}
@@ -31,7 +31,7 @@ func isContain(what []string, where []string) bool {
 	return false
 }
 
-func getStringSlice(sl []optimizer.Selector) []string {
+func getStringSlice(sl []Selector) []string {
 	var strs []string
 	for _, selector := range sl {
 		strs = append(strs, selector.Value)

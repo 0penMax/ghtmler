@@ -13,6 +13,7 @@ type SelectorType string
 const (
 	selectorClass SelectorType = "class"
 	selectorId    SelectorType = "id"
+	selectorTag   SelectorType = "tag"
 )
 
 const staticCssPath = "static/css"
@@ -94,7 +95,7 @@ func GetAllSelectors(htmlCode string) ([]Selector, error) {
 					s := strings.ReplaceAll(el.Val, " ", "")
 					if s != "" {
 						selectors = append(selectors, Selector{
-							Value: "#" + s,
+							Value: s,
 							SType: selectorId,
 						})
 					}
