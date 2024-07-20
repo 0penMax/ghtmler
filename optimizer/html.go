@@ -59,7 +59,7 @@ func GetCSSFileNamesFromHtml(r io.Reader) ([]CssFile, error) {
 				}
 				if isStylesheet && href != "" {
 
-					cssFiles = append(cssFiles, CssFile{getFileName(href)})
+					cssFiles = append(cssFiles, CssFile{fileName: getFileName(href)})
 				}
 			}
 		}

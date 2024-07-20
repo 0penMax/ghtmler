@@ -29,7 +29,6 @@ type GhtmlFile struct {
 }
 
 // TODO test this func
-// TODO add minify
 func (g *GhtmlFile) save() error {
 	err := utils.WriteLines2File("./dist/"+g.filename+".html", g.content)
 	if err != nil {
@@ -40,14 +39,16 @@ func (g *GhtmlFile) save() error {
 
 	for _, cssFile := range g.cssFiles {
 
-		OptimizedStyles, err := cssFile.GetOptimizedContent(selectors)
-		if err != nil {
-			return err
-		}
-
-		err = saveToFile(cssFile.GetSavePath(), OptimizedStyles)
-		if err != nil {
-			return err
+		if g.minifyParams.IsMinifyCss {
+			err = cssFile.SaveOptimizedAndMinifiedContent(selectors)
+			if err != nil {
+				return err
+			}
+		} else {
+			err = cssFile.SaveOptimizedContent(selectors)
+			if err != nil {
+				return err
+			}
 		}
 
 	}
@@ -138,18 +139,6 @@ func buildHtml(fpath string) ([]string, error) {
 
 	return resultStrs, nil
 
-}
-
-// saveToFile saves the provided string to the specified file.
-// If the file already exists, it will be overwritten.
-func saveToFile(filename, data string) error {
-	// Open the file with write permissions. Create it if it doesn't exist.
-	// The file permissions are set to 0644, meaning read and write for the owner, and read-only for others.
-	err := os.WriteFile(filename, []byte(data), 0644)
-	if err != nil {
-		return err
-	}
-	return nil
 }
 
 func removeExtraSpace(str string) string {

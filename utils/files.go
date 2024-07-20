@@ -54,3 +54,15 @@ func removeHtmlComment(str string) string {
 
 	return str
 }
+
+// SaveToFile saves the provided string to the specified file.
+// If the file already exists, it will be overwritten.
+func SaveToFile(filename, data string) error {
+	// Open the file with write permissions. Create it if it doesn't exist.
+	// The file permissions are set to 0644, meaning read and write for the owner, and read-only for others.
+	err := os.WriteFile(filename, []byte(data), 0644)
+	if err != nil {
+		return err
+	}
+	return nil
+}
