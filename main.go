@@ -15,7 +15,6 @@ import (
 )
 
 func main() {
-	fmt.Println("start")
 	f, err := os.OpenFile("error.log", os.O_RDWR|os.O_CREATE|os.O_APPEND, 0644)
 	if err != nil {
 		log.Fatalf("error opening file: %v", err)
@@ -25,8 +24,8 @@ func main() {
 	log.SetOutput(f)
 
 	var isServe bool
-	var isMinifyCss bool //TODO realize
-	var isMinifyJs bool  //TODO realize
+	var isMinifyCss bool
+	var isMinifyJs bool
 
 	flag.BoolVar(&isServe, "serve", false, "auto serve file updates, you don't need to reexecute ghtmler")
 	flag.BoolVar(&isMinifyCss, "minifycss", false, "minify css, only for build, ignoring for serve")
@@ -54,7 +53,8 @@ func main() {
 		IsMinifyJs:  isMinifyJs,
 	})
 	if err != nil {
-		log.Fatal(err)
+		fmt.Println(err)
+		return
 	}
 
 	if isServe {
@@ -63,13 +63,15 @@ func main() {
 		httpServer.RunServer()
 		prevState := State
 		if err != nil {
-			log.Fatal(err)
+			fmt.Println(err)
+			return
 		}
 		for {
 			time.Sleep(1 * time.Second)
 			currentState, err := fsPatrol.GetState()
 			if err != nil {
-				log.Println(err)
+				fmt.Println(err)
+				return
 			}
 
 			if fsPatrol.IsDiffState(prevState, currentState) {
@@ -79,7 +81,8 @@ func main() {
 					IsMinifyJs:  false,
 				})
 				if err != nil {
-					log.Println(err)
+					fmt.Println(err)
+					return
 				}
 				ws_server.SendReload()
 				prevState = currentState

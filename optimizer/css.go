@@ -66,6 +66,13 @@ func (f CssFile) SaveOptimizedContent(usedSelectors []Selector) error {
 
 	return utils.SaveToFile(f.GetSavePath(), c)
 }
+func (f CssFile) SaveContent() error {
+	c, err := f.GetContent()
+	if err != nil {
+		return err
+	}
+	return utils.SaveToFile(f.GetSavePath(), c)
+}
 
 func (f CssFile) SaveOptimizedAndMinifiedContent(usedSelectors []Selector) error {
 	c, err := f.GetOptimizedAndMinifiedContent(usedSelectors)

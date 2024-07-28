@@ -7,7 +7,7 @@ import (
 	"github.com/tdewolff/minify/v2/css"
 )
 
-type Params struct { // TODO realize using optimizer on build
+type Params struct {
 	IsMinifyCss bool
 	IsMinifyJs  bool
 }

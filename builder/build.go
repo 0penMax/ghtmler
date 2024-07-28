@@ -16,7 +16,8 @@ import (
 
 const includeConst = "@include"
 
-const staticDirPath = "static/"
+const staticImgDirPath = "static/img/"
+const staticOtherDirPath = "static/other/"
 
 const LIVE_RELOAD_FOLDER = "./liveReload/"
 
@@ -28,9 +29,13 @@ type GhtmlFile struct {
 	minifyParams minify.Params
 }
 
+func (g *GhtmlFile) getDistFilepath() string {
+	return "./dist/" + g.filename + ".html"
+}
+
 // TODO test this func
 func (g *GhtmlFile) save() error {
-	err := utils.WriteLines2File("./dist/"+g.filename+".html", g.content)
+	err := utils.WriteLines2File(g.getDistFilepath(), g.content)
 	if err != nil {
 		return err
 	}
@@ -45,7 +50,7 @@ func (g *GhtmlFile) save() error {
 				return err
 			}
 		} else {
-			err = cssFile.SaveOptimizedContent(selectors)
+			err = cssFile.SaveContent()
 			if err != nil {
 				return err
 			}
@@ -103,7 +108,11 @@ func Build(ghmlFiles []string, isLiveReload bool, minifyParam minify.Params) err
 
 	}
 
-	err := copyDir(staticDirPath, "dist/static")
+	err := copyDir(staticImgDirPath, "dist/static/img/")
+	if err != nil {
+		return err
+	}
+	err = copyDir(staticOtherDirPath, "dist/static/other/")
 	if err != nil {
 		return err
 	}
@@ -154,6 +163,7 @@ func removeSpaceAndTab(str string) string {
 }
 
 func getFileNameOnly(fpath string) string {
+	fpath = strings.ReplaceAll(fpath, "\\", "/")
 	fileName := path.Base(fpath)
 	if pos := strings.LastIndexByte(fileName, '.'); pos != -1 {
 		return fileName[:pos]

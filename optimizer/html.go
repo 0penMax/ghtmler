@@ -17,7 +17,7 @@ const (
 )
 
 const staticCssPath = "static/css"
-const distStaticCssPath = "dist/static"
+const distStaticCssPath = "dist/static/css"
 
 type Selector struct {
 	Value string
