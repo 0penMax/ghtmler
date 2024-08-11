@@ -8,8 +8,18 @@ import (
 )
 
 type Params struct {
-	IsMinifyCss bool
-	IsMinifyJs  bool
+	IsMinifyCss   bool
+	IsOptimizeCss bool
+	IsMinifyJs    bool
+	IsOptimizeJs  bool
+}
+
+func (p Params) IsOptiMiniCss() bool {
+	return p.IsMinifyCss && p.IsOptimizeCss
+}
+
+func (p Params) IsOptiMiniJs() bool {
+	return p.IsMinifyJs && p.IsOptimizeJs
 }
 
 func MinifyCSS(cssContent string) (string, error) {

@@ -44,8 +44,18 @@ func (g *GhtmlFile) save() error {
 
 	for _, cssFile := range g.cssFiles {
 
-		if g.minifyParams.IsMinifyCss {
+		if g.minifyParams.IsOptiMiniCss() {
 			err = cssFile.SaveOptimizedAndMinifiedContent(selectors)
+			if err != nil {
+				return err
+			}
+		} else if g.minifyParams.IsOptimizeCss {
+			err = cssFile.SaveOptimizedContent(selectors) //TODO test optimize content
+			if err != nil {
+				return err
+			}
+		} else if g.minifyParams.IsMinifyCss {
+			err = cssFile.SaveMinifiedContent()
 			if err != nil {
 				return err
 			}

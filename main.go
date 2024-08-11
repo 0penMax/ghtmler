@@ -25,11 +25,27 @@ func main() {
 
 	var isServe bool
 	var isMinifyCss bool
+	var isOptimizeCss bool
+	var isOMCss bool
+
+	var isOptimizeJs bool
 	var isMinifyJs bool
 
 	flag.BoolVar(&isServe, "serve", false, "auto serve file updates, you don't need to reexecute ghtmler")
+
 	flag.BoolVar(&isMinifyCss, "minifycss", false, "minify css, only for build, ignoring for serve")
+	flag.BoolVar(&isMinifyCss, "mcss", false, "minify css, only for build, ignoring for serve")
+
+	flag.BoolVar(&isOptimizeCss, "optimizecss", false, "optimize css, only for build, ignoring for serve")
+	flag.BoolVar(&isOptimizeCss, "ocss", false, "optimize css, only for build, ignoring for serve")
+
+	flag.BoolVar(&isOMCss, "omcss", false, "optimize and minify  css, only for build, ignoring for serve")
+
 	flag.BoolVar(&isMinifyJs, "minifyjs", false, "minify js, only for build, ignoring for serve")
+	flag.BoolVar(&isMinifyJs, "mjs", false, "minify js, only for build, ignoring for serve")
+
+	flag.BoolVar(&isOptimizeJs, "optimizejs", false, "optimize js, only for build, ignoring for serve")
+	flag.BoolVar(&isOptimizeJs, "ojs", false, "optimize js, only for build, ignoring for serve")
 
 	flag.Parse()
 
@@ -48,10 +64,25 @@ func main() {
 		log.Fatal(errs)
 	}
 
-	err = builder.Build(State.GetGhtmlFiles(), isServe, minify.Params{
-		IsMinifyCss: isMinifyCss,
-		IsMinifyJs:  isMinifyJs,
-	})
+	var p minify.Params
+
+	if isOMCss {
+		p = minify.Params{
+			IsMinifyCss:   true,
+			IsMinifyJs:    isMinifyJs,
+			IsOptimizeCss: true,
+			IsOptimizeJs:  isOptimizeJs,
+		}
+	} else {
+		p = minify.Params{
+			IsMinifyCss:   isMinifyCss,
+			IsMinifyJs:    isMinifyJs,
+			IsOptimizeCss: isOptimizeCss,
+			IsOptimizeJs:  isOptimizeJs,
+		}
+	}
+
+	err = builder.Build(State.GetGhtmlFiles(), isServe, p)
 	if err != nil {
 		fmt.Println(err)
 		return
