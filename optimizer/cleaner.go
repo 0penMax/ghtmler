@@ -11,6 +11,14 @@ func RemoveUnusedSelectors(cssContent css.Stylesheet, usedSelectors []Selector) 
 	var newCss css.Stylesheet
 	for _, rule := range cssContent.Rules {
 		if rule.Kind == css.AtRule {
+			if rule.EmbedsRules() {
+				newRule := clearRuleSubrules(rule, sl)
+				if len(newRule.Rules) != 0 {
+					newCss.Rules = append(newCss.Rules, rule)
+				}
+				continue
+			}
+
 			newCss.Rules = append(newCss.Rules, rule)
 			continue
 		}
@@ -19,6 +27,19 @@ func RemoveUnusedSelectors(cssContent css.Stylesheet, usedSelectors []Selector) 
 		}
 	}
 	return newCss
+}
+
+func clearRuleSubrules(rule *css.Rule, usedSelectors []string) *css.Rule {
+	embRules := rule.Rules
+	rule.Rules = nil
+
+	for _, erule := range embRules {
+		if isContain(usedSelectors, erule.Selectors) {
+			rule.Rules = append(rule.Rules, erule)
+		}
+	}
+
+	return rule
 }
 
 func isContain(what []string, where []string) bool {
