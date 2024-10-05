@@ -22,7 +22,8 @@ func RemoveUnusedSelectors(cssContent css.Stylesheet, usedSelectors []Selector) 
 			newCss.Rules = append(newCss.Rules, rule)
 			continue
 		}
-		if isContain(sl, rule.Selectors) {
+		if fs := filterSelectors(rule.Selectors, sl); fs != nil {
+			rule.Selectors = fs
 			newCss.Rules = append(newCss.Rules, rule)
 		}
 	}
@@ -34,12 +35,33 @@ func clearRuleSubrules(rule *css.Rule, usedSelectors []string) *css.Rule {
 	rule.Rules = nil
 
 	for _, erule := range embRules {
-		if isContain(usedSelectors, erule.Selectors) {
+		if fs := filterSelectors(erule.Selectors, usedSelectors); fs != nil {
+			erule.Selectors = fs
 			rule.Rules = append(rule.Rules, erule)
 		}
 	}
 
+	rule.Selectors = filterSelectors(rule.Selectors, usedSelectors)
+
 	return rule
+}
+
+func filterSelectors(slice1, mustContain []string) []string {
+	// Create a map to hold the values of mustContain for faster lookup
+	set := make(map[string]struct{})
+	for _, item := range mustContain {
+		set[item] = struct{}{}
+	}
+
+	// Filter slice1
+	var filtered []string
+	for _, item := range slice1 {
+		if _, exists := set[item]; exists {
+			filtered = append(filtered, item)
+		}
+	}
+
+	return filtered
 }
 
 func isContain(what []string, where []string) bool {
