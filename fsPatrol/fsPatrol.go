@@ -5,73 +5,81 @@ import (
 )
 
 const (
-	GHTML_FOLDER      = "ghtml"
-	COMPONENTS_FOLDER = "components"
-	STATIC_FOLDER     = "static"
+	ghtmlFolder      = "ghtml"
+	componentsFolder = "components"
+	staticFolder     = "static"
 )
 
+// FsSnap represents a snapshot of file paths and their hashes.
 type FsSnap map[string]string //[path]hash
 
-func (s FsSnap) GetGhtmlFiles() (result []string) {
-	for p := range s {
-		if filescaner.IsGhtmlFile(p) {
-			result = append(result, p)
+// GetGhtmlFiles filters the snapshot for only GHTML files.
+func (s FsSnap) GetGhtmlFiles() []string {
+	var result []string
+	for path := range s {
+		if filescaner.IsGhtmlFile(path) {
+			result = append(result, path)
 		}
 	}
-
-	return
+	return result
 }
 
+// GetState captures the current state of the filesystem for predefined folders.
 func GetState() (FsSnap, []error) {
-	return getState(filescaner.ScanFS, filescaner.ScanGhtmlFilesOnly)
+	return collectState(filescaner.ScanFS, filescaner.ScanGhtmlFilesOnly)
 }
 
-func getState(fScanFs, fScanGhtmlFilesOnly func(path string) (map[string]string, []error)) (FsSnap, []error) {
-	var snaps []FsSnap
+// collectState aggregates the snapshots of specified folders and files.
+func collectState(
+	scanFS, scanGhtmlFilesOnly func(path string) (map[string]string, []error),
+) (FsSnap, []error) {
+	snapshots := []FsSnap{}
+	folders := []string{componentsFolder, staticFolder}
 
-	for _, v := range []string{COMPONENTS_FOLDER, STATIC_FOLDER} {
-		snap, errs := fScanFs(v)
-		if len(errs) != 0 {
-			return FsSnap{}, errs
+	// Scan folders
+	for _, folder := range folders {
+		snap, errs := scanFS(folder)
+		if len(errs) > 0 {
+			return nil, errs
 		}
-		snaps = append(snaps, snap)
+		snapshots = append(snapshots, snap)
 	}
 
-	snap, errs := fScanGhtmlFilesOnly(GHTML_FOLDER)
-	if len(errs) != 0 {
-		return FsSnap{}, errs
+	// Scan GHTML folder
+	ghtmlSnap, errs := scanGhtmlFilesOnly(ghtmlFolder)
+	if len(errs) > 0 {
+		return nil, errs
 	}
-	snaps = append(snaps, snap)
+	snapshots = append(snapshots, ghtmlSnap)
 
-	oneSnap := combiningSnap(snaps)
-	return oneSnap, nil
+	// Combine all snapshots
+	return mergeSnapshots(snapshots), nil
 }
 
-func combiningSnap(snaps []FsSnap) FsSnap {
-	oneSnap := make(map[string]string)
+// mergeSnapshots merges multiple FsSnap instances into one.
+func mergeSnapshots(snaps []FsSnap) FsSnap {
+	merged := FsSnap{}
 	for _, snap := range snaps {
-		for k, v := range snap {
-			oneSnap[k] = v
+		for path, hash := range snap {
+			merged[path] = hash
 		}
 	}
-	return oneSnap
+	return merged
 }
 
-func IsDiffState(filesSourceState map[string]string, filesCurrentState map[string]string) bool {
-	//Сравнивам данные из снимка с текущими файлами и их состоянием
-	for k, v := range filesCurrentState {
-		hs, ok := filesSourceState[k]
-		if !ok {
-			return true //new file
-		}
-		if hs != v {
-			return true //change file
+// IsDiffState compares two snapshots and determines if there are differences.
+func IsDiffState(sourceState, currentState FsSnap) bool {
+	// Check for new or modified files
+	for path, currentHash := range currentState {
+		if sourceHash, exists := sourceState[path]; !exists || sourceHash != currentHash {
+			return true
 		}
 	}
-	for k := range filesSourceState {
-		_, ok := filesCurrentState[k]
-		if !ok {
-			return true //deleted file
+
+	// Check for deleted files
+	for path := range sourceState {
+		if _, exists := currentState[path]; !exists {
+			return true
 		}
 	}
 	return false
