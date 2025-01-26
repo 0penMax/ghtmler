@@ -20,7 +20,11 @@ func main() {
 	if err != nil {
 		log.Fatalf("error opening file: %v", err)
 	}
-	defer f.Close()
+	defer func() {
+		if err := f.Close(); err != nil {
+			fmt.Println("Error closing file:", err)
+		}
+	}()
 
 	log.SetOutput(f)
 
