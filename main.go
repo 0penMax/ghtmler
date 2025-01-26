@@ -14,7 +14,6 @@ import (
 	"time"
 )
 
-// TODO add function to create all folder structure for work from one binary file and add readme.txt in all folder to explain what need to put inside
 func main() {
 	f, err := os.OpenFile("error.log", os.O_RDWR|os.O_CREATE|os.O_APPEND, 0644)
 	if err != nil {

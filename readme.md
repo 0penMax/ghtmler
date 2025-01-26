@@ -6,11 +6,10 @@ How to use:
 
 - create files in /ghtml/ folder with same name what your want html file and extension .ghtml
 - use special word (@include) in ghtml file for include html file in output file
+- put html code that your want include in /components/path/what/you/want.html
 - put all your static files in /static/ folder
 - run ghtmler
 - enjoy your site in dist folder
-
-You can use flag -serve for realtime rebuild and how changes.
 
 example index.ghtml: 
 ```$xslt
@@ -66,5 +65,12 @@ project structure:
 ├── runGhtml
 └── .gitignore
 ```
-    
+
+## Flags
+
+ - serve -  realtime rebuild on changes in files.
+ - minifycss or mcss - minify css, only for build, ignoring for serve
+ - optimizecss or ocss - optimize css, only for build, ignoring for serve
+ - omcss - mcss && ocss
+
 
