@@ -3,7 +3,6 @@ package fsPatrol
 import (
 	"reflect"
 	"testing"
-	
 )
 
 func Test_getState(t *testing.T) {
@@ -25,14 +24,14 @@ func Test_getState(t *testing.T) {
 		}, nil
 	}
 
-	expectedSnap :=  FsSnap(map[string]string{
-			"file1": "content1",
-			"file2": "content2",
-			"file3": "content3",
-			"file4": "content4",
+	expectedSnap := FsSnap(map[string]string{
+		"file1": "content1",
+		"file2": "content2",
+		"file3": "content3",
+		"file4": "content4",
 	})
 
-	snap, errs := getState(mockScanFS, mockScanGhtmlFilesOnly)
+	snap, errs := collectState(mockScanFS, mockScanGhtmlFilesOnly)
 
 	// Check if the returned snapshot matches the expected snapshot
 	if !reflect.DeepEqual(snap, expectedSnap) {
@@ -45,18 +44,15 @@ func Test_getState(t *testing.T) {
 	}
 }
 
-
 func TestCombiningSnap(t *testing.T) {
 	mockSnaps := []FsSnap{
-		 map[string]string{"file1": "content1", "file2": "content2"},
-		 map[string]string{"file3": "content3", "file4": "content4"},
+		map[string]string{"file1": "content1", "file2": "content2"},
+		map[string]string{"file3": "content3", "file4": "content4"},
 	}
 
 	expectedSnap := FsSnap(map[string]string{"file1": "content1", "file2": "content2", "file3": "content3", "file4": "content4"})
 
-	snap := combiningSnap(mockSnaps)
-
-
+	snap := mergeSnapshots(mockSnaps)
 
 	if !reflect.DeepEqual(snap, expectedSnap) {
 		t.Errorf("Expected snap FS %v, but got %v", expectedSnap, snap)

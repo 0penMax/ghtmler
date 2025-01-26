@@ -48,15 +48,15 @@ func clearRuleSubrules(rule *css.Rule, usedSelectors []string) *css.Rule {
 
 func filterSelectors(slice1, mustContain []string) []string {
 	// Create a map to hold the values of mustContain for faster lookup
-	set := make(map[string]struct{})
+	set := make(map[string]bool)
 	for _, item := range mustContain {
-		set[item] = struct{}{}
+		set[item] = true
 	}
 
 	// Filter slice1
 	var filtered []string
 	for _, item := range slice1 {
-		if _, exists := set[item]; exists {
+		if set[item] {
 			filtered = append(filtered, item)
 		}
 	}
