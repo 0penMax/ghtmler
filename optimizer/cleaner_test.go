@@ -83,7 +83,7 @@ func TestRemoveUnusedSelectors(t *testing.T) {
 				Rules: []*css.Rule{
 					{
 						Prelude:   "h6, .h6, h5, .h5, h4, .h4, h3, .h3, h2, .h2, h1, .h1",
-						Selectors: []string{"h1"},
+						Selectors: []string{"h6", ".h6", "h5", ".h5", "h4", ".h4", "h3", ".h3", "h2", ".h2", "h1", ".h1"},
 						Declarations: []*css.Declaration{
 							{
 								Property: "margin-top",
@@ -104,7 +104,7 @@ func TestRemoveUnusedSelectors(t *testing.T) {
 					},
 					{
 						Prelude:   "h1, .h1",
-						Selectors: []string{"h1"},
+						Selectors: []string{"h1", ".h1"},
 						Declarations: []*css.Declaration{
 							{
 								Property: "font-size",
@@ -122,7 +122,7 @@ func TestRemoveUnusedSelectors(t *testing.T) {
 							{
 								Kind:      css.QualifiedRule,
 								Prelude:   "h1, .h1",
-								Selectors: []string{"h1"},
+								Selectors: []string{"h1", ".h1"},
 								Declarations: []*css.Declaration{
 									{
 										Property: "font-size",
@@ -140,7 +140,7 @@ func TestRemoveUnusedSelectors(t *testing.T) {
 		{
 			name: "Single Class Selector",
 			args: args{
-				css: getParsedCss4Test(testCss),
+				css: *ParsedCss,
 				usedSelectors: []Selector{{
 					Value: ".h1",
 					SType: selectorClass,
@@ -150,7 +150,7 @@ func TestRemoveUnusedSelectors(t *testing.T) {
 				Rules: []*css.Rule{
 					{
 						Prelude:   "h6, .h6, h5, .h5, h4, .h4, h3, .h3, h2, .h2, h1, .h1",
-						Selectors: []string{".h1"},
+						Selectors: []string{"h6", ".h6", "h5", ".h5", "h4", ".h4", "h3", ".h3", "h2", ".h2", "h1", ".h1"},
 						Declarations: []*css.Declaration{
 							{
 								Property: "margin-top",
@@ -171,7 +171,7 @@ func TestRemoveUnusedSelectors(t *testing.T) {
 					},
 					{
 						Prelude:   "h1, .h1",
-						Selectors: []string{".h1"},
+						Selectors: []string{"h1", ".h1"},
 						Declarations: []*css.Declaration{
 							{
 								Property: "font-size",
@@ -189,7 +189,7 @@ func TestRemoveUnusedSelectors(t *testing.T) {
 							{
 								Kind:      css.QualifiedRule,
 								Prelude:   "h1, .h1",
-								Selectors: []string{".h1"},
+								Selectors: []string{"h1", ".h1"},
 								Declarations: []*css.Declaration{
 									{
 										Property: "font-size",
@@ -207,7 +207,7 @@ func TestRemoveUnusedSelectors(t *testing.T) {
 		{
 			name: "Multiple Tag Selectors",
 			args: args{
-				css: getParsedCss4Test(testCss),
+				css: *ParsedCss,
 				usedSelectors: []Selector{
 					{
 						Value: "h1",
@@ -227,7 +227,7 @@ func TestRemoveUnusedSelectors(t *testing.T) {
 				Rules: []*css.Rule{
 					{
 						Prelude:   "h6, .h6, h5, .h5, h4, .h4, h3, .h3, h2, .h2, h1, .h1",
-						Selectors: []string{"h3", "h2", "h1"},
+						Selectors: []string{"h6", ".h6", "h5", ".h5", "h4", ".h4", "h3", ".h3", "h2", ".h2", "h1", ".h1"},
 						Declarations: []*css.Declaration{
 							{
 								Property: "margin-top",
@@ -248,7 +248,7 @@ func TestRemoveUnusedSelectors(t *testing.T) {
 					},
 					{
 						Prelude:   "h1, .h1",
-						Selectors: []string{"h1"},
+						Selectors: []string{"h1", ".h1"},
 						Declarations: []*css.Declaration{
 							{
 								Property: "font-size",
@@ -260,7 +260,7 @@ func TestRemoveUnusedSelectors(t *testing.T) {
 					},
 					{
 						Prelude:   "h2, .h2",
-						Selectors: []string{"h2"},
+						Selectors: []string{"h2", ".h2"},
 						Declarations: []*css.Declaration{
 							{
 								Property: "font-size",
@@ -272,7 +272,7 @@ func TestRemoveUnusedSelectors(t *testing.T) {
 					},
 					{
 						Prelude:   "h3, .h3",
-						Selectors: []string{"h3"},
+						Selectors: []string{"h3", ".h3"},
 						Declarations: []*css.Declaration{
 							{
 								Property: "font-size",
@@ -290,7 +290,7 @@ func TestRemoveUnusedSelectors(t *testing.T) {
 							{
 								Kind:      css.QualifiedRule,
 								Prelude:   "h1, .h1",
-								Selectors: []string{"h1"},
+								Selectors: []string{"h1", ".h1"},
 								Declarations: []*css.Declaration{
 									{
 										Property: "font-size",
@@ -308,14 +308,68 @@ func TestRemoveUnusedSelectors(t *testing.T) {
 		{
 			name: "Unused Selectors",
 			args: args{
-				css: getParsedCss4Test(testCss),
+				css: *ParsedCss,
 				usedSelectors: []Selector{{
-					Value: "u",
+					Value: "h1",
 					SType: selectorTag,
 				}},
 			},
 			want: css.Stylesheet{
-				Rules: nil,
+				Rules: []*css.Rule{
+					{
+						Prelude:   "h6, .h6, h5, .h5, h4, .h4, h3, .h3, h2, .h2, h1, .h1",
+						Selectors: []string{"h6", ".h6", "h5", ".h5", "h4", ".h4", "h3", ".h3", "h2", ".h2", "h1", ".h1"},
+						Declarations: []*css.Declaration{
+							{
+								Property: "margin-top",
+								Value:    "0",
+							}, {
+								Property: "margin-bottom",
+								Value:    "0.5rem",
+							}, {
+								Property: "font-weight",
+								Value:    "500",
+							}, {
+								Property: "line-height",
+								Value:    "1.2",
+							},
+						},
+						Rules:      nil,
+						EmbedLevel: 0,
+					},
+					{
+						Prelude:   "h1, .h1",
+						Selectors: []string{"h1", ".h1"},
+						Declarations: []*css.Declaration{
+							{
+								Property: "font-size",
+								Value:    "calc(1.375rem + 1.5vw)",
+							},
+						},
+						Rules:      nil,
+						EmbedLevel: 0,
+					},
+					{
+						Kind:    css.AtRule,
+						Name:    "@media",
+						Prelude: "(min-width: 1200px)",
+						Rules: []*css.Rule{
+							{
+								Kind:      css.QualifiedRule,
+								Prelude:   "h1, .h1",
+								Selectors: []string{"h1", ".h1"},
+								Declarations: []*css.Declaration{
+									{
+										Property: "font-size",
+										Value:    "2.5rem",
+									},
+								},
+								EmbedLevel: 1,
+							},
+						},
+						EmbedLevel: 0,
+					},
+				},
 			},
 		},
 		{
@@ -325,13 +379,32 @@ func TestRemoveUnusedSelectors(t *testing.T) {
 				usedSelectors: []Selector{},
 			},
 			want: css.Stylesheet{
-				Rules: nil,
+				Rules: []*css.Rule{{
+					Kind:    css.AtRule,
+					Name:    "@media",
+					Prelude: "(min-width: 1200px)",
+					Rules: []*css.Rule{
+						{
+							Kind:      css.QualifiedRule,
+							Prelude:   "h1, .h1",
+							Selectors: []string{"h1", ".h1"},
+							Declarations: []*css.Declaration{
+								{
+									Property: "font-size",
+									Value:    "2.5rem",
+								},
+							},
+							EmbedLevel: 1,
+						},
+					},
+					EmbedLevel: 0,
+				}},
 			},
 		},
 		{
 			name: "All Selectors Used",
 			args: args{
-				css: getParsedCss4Test(testCss),
+				css: *ParsedCss,
 				usedSelectors: []Selector{
 					{
 						Value: "h1",
@@ -387,7 +460,7 @@ func TestRemoveUnusedSelectors(t *testing.T) {
 					},
 				},
 			},
-			want: getParsedCss4Test(testCss),
+			want: *ParsedCss,
 		},
 	}
 	for _, tt := range tests {
@@ -410,13 +483,6 @@ func TestRemoveUnusedSelectors(t *testing.T) {
 				}
 				t.Errorf("RemoveUnusedSelectors():\n %v, \n\n want:\n %v", got, tt.want)
 			}
-
 		})
 	}
-
-}
-
-func getParsedCss4Test(cssText string) css.Stylesheet {
-	ParsedCss, _ := css.Parse(cssText)
-	return *ParsedCss
 }

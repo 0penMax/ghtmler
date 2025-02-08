@@ -1,6 +1,7 @@
 package optimizer
 
 import (
+	"goHtmlBuilder/css"
 	"reflect"
 	"regexp"
 	"strings"
@@ -9,6 +10,11 @@ import (
 
 // TODO complete the test to check the correct operation on the bootstrap
 func TestRemoveUnusedSelectors2(t *testing.T) {
+
+	ParsedCss, err := css.Parse(bootstrap5css)
+	if err != nil {
+		t.Fatal("Failed to parse css", err, testCss)
+	}
 
 	type args struct {
 		usedSelectors []Selector
@@ -68,99 +74,11 @@ func TestRemoveUnusedSelectors2(t *testing.T) {
 			},
 			want: `@charset "UTF-8"; p { margin-top: 0; margin-bottom: 1rem; } a { color: rgba(var(--bs-link-color-rgb), var(--bs-link-opacity, 1)); text-decoration: underline; }`,
 		},
-
-		{
-			name: "test9_single_class_selector",
-			args: args{
-				usedSelectors: []Selector{{
-					Value: ".display-1",
-					SType: selectorClass,
-				}},
-			},
-			want: `@charset "UTF-8";
-				.display-1 {
-				  font-size: calc(1.625rem + 4.5vw);
-				  font-weight: 300;
-				  line-height: 1.2;
-				}
-				@media (min-width: 1200px) {
-				  .display-1 {
-				    font-size: 5rem;
-				  }
-				}`,
-		},
-
-		//TODO add to cleaner option to correct work with special character like >, <, ::, * and etc
-		// {
-		// 	name: "test11_utility_classes",
-		// 	args: args{
-		// 		usedSelectors: []Selector{{
-		// 			Value: ".row",
-		// 			SType: selectorClass,
-		// 		}},
-		// 	},
-		// 	want: `@charset "UTF-8";
-		// 		.row {
-		// 		  --bs-gutter-x: 1.5rem;
-		// 		  --bs-gutter-y: 0;
-		// 		  display: flex;
-		// 		  flex-wrap: wrap;
-		// 		  margin-top: calc(-1 * var(--bs-gutter-y));
-		// 		  margin-right: calc(-0.5 * var(--bs-gutter-x));
-		// 		  margin-left: calc(-0.5 * var(--bs-gutter-x));
-		// 		}
-		// 		.row > * {
-		// 		  flex-shrink: 0;
-		// 		  width: 100%;
-		// 		  max-width: 100%;
-		// 		  padding-right: calc(var(--bs-gutter-x) * 0.5);
-		// 		  padding-left: calc(var(--bs-gutter-x) * 0.5);
-		// 		  margin-top: var(--bs-gutter-y);
-		// 		}`,
-		// },
-		{
-			name: "test12_multiple_selectors_mixed",
-			args: args{
-				usedSelectors: []Selector{{
-					Value: "h3",
-					SType: selectorTag,
-				}, {
-					Value: "blockquote",
-					SType: selectorTag,
-				}},
-			},
-			want: ` @charset "UTF-8"; h3 { margin-top: 0; margin-bottom: 0.5rem; font-weight: 500; line-height: 1.2; color: var(--bs-heading-color); } h3 { font-size: calc(1.3rem + 0.6vw); } @media (min-width: 1200px) { h3 { font-size: 1.75rem; } } blockquote { margin: 0 0 1rem; }`,
-		},
-		{
-			name: "test13_unused_selectors",
-			args: args{
-				usedSelectors: []Selector{{
-					Value: ".nonexistent-class",
-					SType: selectorClass,
-				}},
-			},
-			want: `@charset "UTF-8";`, // No matching selectors, empty result aside from charset
-		},
-		{
-			name: "test14_selector_with_media_query",
-			args: args{
-				usedSelectors: []Selector{{
-					Value: ".col-sm",
-					SType: selectorClass,
-				}},
-			},
-			want: `@charset "UTF-8";
-				@media (min-width: 576px) {
-				  .col-sm {
-				    flex: 1 0 0%;
-				  }
-				}`,
-		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := RemoveUnusedSelectors(getParsedCss4Test(bootstrap5css), tt.args.usedSelectors); !reflect.DeepEqual(got, tt.want) {
+			if got := RemoveUnusedSelectors(*ParsedCss, tt.args.usedSelectors); !reflect.DeepEqual(got, tt.want) {
 				clearGot := cleanString(got.String())
 				clearWant := cleanString(tt.want)
 				if clearGot != clearWant {

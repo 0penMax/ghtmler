@@ -1,12 +1,11 @@
 package optimizer
 
 import (
+	"golang.org/x/net/html"
 	"io"
 	"path/filepath"
 	"slices"
 	"strings"
-
-	"golang.org/x/net/html"
 )
 
 type SelectorType string
@@ -29,8 +28,6 @@ func getFileName(fullPath string) string {
 	if fullPath == "" || fullPath == "/" || fullPath == "\\" {
 		return ""
 	}
-	fullPath = strings.ReplaceAll(fullPath, "\\\\", "/")
-	fullPath = strings.ReplaceAll(fullPath, "\\", "/")
 	return filepath.Base(fullPath)
 }
 
