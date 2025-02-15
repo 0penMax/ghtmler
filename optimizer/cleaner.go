@@ -2,17 +2,32 @@ package optimizer
 
 import (
 	"goHtmlBuilder/css"
-	"slices"
 )
 
+type quickSelectors struct {
+	data map[string]bool
+}
+
+func (qs *quickSelectors) init(selectors []Selector) {
+	qs.data = make(map[string]bool)
+	for _, selector := range selectors {
+		qs.data[selector.Value] = true
+
+	}
+}
+func (qs *quickSelectors) isContain(selector string) bool {
+	return qs.data[selector]
+}
+
 func RemoveUnusedSelectors(cssContent css.Stylesheet, usedSelectors []Selector) css.Stylesheet {
-	sl := getStringSlice(usedSelectors)
+	var qs quickSelectors
+	qs.init(usedSelectors)
 
 	var newCss css.Stylesheet
 	for _, rule := range cssContent.Rules {
 		if rule.Kind == css.AtRule {
 			if rule.EmbedsRules() {
-				newRule := clearRuleSubrules(rule, sl)
+				newRule := clearRuleSubrules(rule, qs)
 				if len(newRule.Rules) != 0 {
 					newCss.Rules = append(newCss.Rules, rule)
 				}
@@ -22,7 +37,7 @@ func RemoveUnusedSelectors(cssContent css.Stylesheet, usedSelectors []Selector) 
 			newCss.Rules = append(newCss.Rules, rule)
 			continue
 		}
-		if fs := filterSelectors(rule.Selectors, sl); fs != nil {
+		if fs := filterSelectors(rule.Selectors, qs); fs != nil {
 			rule.Selectors = fs
 			newCss.Rules = append(newCss.Rules, rule)
 		}
@@ -30,7 +45,7 @@ func RemoveUnusedSelectors(cssContent css.Stylesheet, usedSelectors []Selector) 
 	return newCss
 }
 
-func clearRuleSubrules(rule *css.Rule, usedSelectors []string) *css.Rule {
+func clearRuleSubrules(rule *css.Rule, usedSelectors quickSelectors) *css.Rule {
 	embRules := rule.Rules
 	rule.Rules = nil
 
@@ -46,39 +61,16 @@ func clearRuleSubrules(rule *css.Rule, usedSelectors []string) *css.Rule {
 	return rule
 }
 
-func filterSelectors(slice1, mustContain []string) []string {
-	// Create a map to hold the values of mustContain for faster lookup
-	set := make(map[string]bool)
-	for _, item := range mustContain {
-		set[item] = true
-	}
-
-	// Filter slice1
+func filterSelectors(sls []string, mustContain quickSelectors) []string {
 	var filtered []string
-	for _, item := range slice1 {
-		if set[item] {
-			filtered = append(filtered, item)
+	for _, sl := range sls {
+		tokens := tokenizeCSSSelector(sl)
+		for _, token := range tokens {
+			if mustContain.isContain(token) {
+				filtered = append(filtered, sl)
+			}
 		}
 	}
 
 	return filtered
-}
-
-func isContain(what []string, where []string) bool {
-	for _, s := range what {
-		if c := slices.Contains(where, s); c {
-			return true
-		}
-	}
-
-	return false
-}
-
-func getStringSlice(sl []Selector) []string {
-	var strs []string
-	for _, selector := range sl {
-		strs = append(strs, selector.Value)
-	}
-
-	return strs
 }

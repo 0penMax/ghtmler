@@ -7,7 +7,7 @@ import (
 	"testing"
 )
 
-// TODO complete the test to check the correct operation on the bootstrap
+// TODO add more tests for difficult selectors like '.row > *'
 func TestRemoveUnusedSelectors2(t *testing.T) {
 
 	type args struct {
@@ -89,35 +89,33 @@ func TestRemoveUnusedSelectors2(t *testing.T) {
 				  }
 				}`,
 		},
-
-		//TODO add to cleaner option to correct work with special character like >, <, ::, * and etc
-		// {
-		// 	name: "test11_utility_classes",
-		// 	args: args{
-		// 		usedSelectors: []Selector{{
-		// 			Value: ".row",
-		// 			SType: selectorClass,
-		// 		}},
-		// 	},
-		// 	want: `@charset "UTF-8";
-		// 		.row {
-		// 		  --bs-gutter-x: 1.5rem;
-		// 		  --bs-gutter-y: 0;
-		// 		  display: flex;
-		// 		  flex-wrap: wrap;
-		// 		  margin-top: calc(-1 * var(--bs-gutter-y));
-		// 		  margin-right: calc(-0.5 * var(--bs-gutter-x));
-		// 		  margin-left: calc(-0.5 * var(--bs-gutter-x));
-		// 		}
-		// 		.row > * {
-		// 		  flex-shrink: 0;
-		// 		  width: 100%;
-		// 		  max-width: 100%;
-		// 		  padding-right: calc(var(--bs-gutter-x) * 0.5);
-		// 		  padding-left: calc(var(--bs-gutter-x) * 0.5);
-		// 		  margin-top: var(--bs-gutter-y);
-		// 		}`,
-		// },
+		{
+			name: "test11_utility_classes",
+			args: args{
+				usedSelectors: []Selector{{
+					Value: ".row",
+					SType: selectorClass,
+				}},
+			},
+			want: `@charset "UTF-8";
+				.row {
+				  --bs-gutter-x: 1.5rem;
+				  --bs-gutter-y: 0;
+				  display: flex;
+				  flex-wrap: wrap;
+				  margin-top: calc(-1 * var(--bs-gutter-y));
+				  margin-right: calc(-0.5 * var(--bs-gutter-x));
+				  margin-left: calc(-0.5 * var(--bs-gutter-x));
+				}
+				.row > * {
+				  flex-shrink: 0;
+				  width: 100%;
+				  max-width: 100%;
+				  padding-right: calc(var(--bs-gutter-x) * 0.5);
+				  padding-left: calc(var(--bs-gutter-x) * 0.5);
+				  margin-top: var(--bs-gutter-y);
+				}`,
+		},
 		{
 			name: "test12_multiple_selectors_mixed",
 			args: args{

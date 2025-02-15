@@ -48,6 +48,7 @@ func main() {
 	flag.BoolVar(&isMinifyJs, "minifyjs", false, "minify js, only for build, ignoring for serve")
 	flag.BoolVar(&isMinifyJs, "mjs", false, "minify js, only for build, ignoring for serve")
 
+	// TODO realize
 	flag.BoolVar(&isOptimizeJs, "optimizejs", false, "optimize js, only for build, ignoring for serve")
 	flag.BoolVar(&isOptimizeJs, "ojs", false, "optimize js, only for build, ignoring for serve")
 
