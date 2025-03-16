@@ -5,6 +5,8 @@ import (
 	"unicode"
 )
 
+//TODO rewrite css parser to optimize code size and include this tokenizer inside as method for for Selector
+
 // skipPseudo skips over a pseudo-class or pseudo-element in the given string.
 // It assumes that s[start] is ':' and returns the index of the last character
 // that belongs to the pseudo selector.

@@ -1,6 +1,8 @@
 package optimizer
 
 import (
+	"fmt"
+	"github.com/sergi/go-diff/diffmatchpatch"
 	"reflect"
 	"regexp"
 	"strings"
@@ -66,7 +68,28 @@ func TestRemoveUnusedSelectors2(t *testing.T) {
 					SType: selectorTag,
 				}},
 			},
-			want: `@charset "UTF-8"; p { margin-top: 0; margin-bottom: 1rem; } a { color: rgba(var(--bs-link-color-rgb), var(--bs-link-opacity, 1)); text-decoration: underline; }`,
+			want: `@charset "UTF-8";
+        p {
+          margin-top: 0;
+          margin-bottom: 1rem;
+        }
+        a {
+          color: rgba(var(--bs-link-color-rgb), var(--bs-link-opacity, 1));
+          text-decoration: underline;
+        }
+        a:hover {
+          --bs-link-color-rgb: var(--bs-link-hover-color-rgb);
+        }
+        a:not([href]):not([class]), a:not([href]):not([class]):hover {
+          color: inherit;
+          text-decoration: none;
+        }
+        a > code {
+          color: inherit;
+        }
+        .navbar-text a, .navbar-text a:hover, .navbar-text a:focus {
+          color: var(--bs-navbar-active-color);
+        }`,
 		},
 
 		{
@@ -161,13 +184,27 @@ func TestRemoveUnusedSelectors2(t *testing.T) {
 			if got := RemoveUnusedSelectors(getParsedCss4Test(bootstrap5css), tt.args.usedSelectors); !reflect.DeepEqual(got, tt.want) {
 				clearGot := cleanString(got.String())
 				clearWant := cleanString(tt.want)
+
 				if clearGot != clearWant {
 					t.Errorf("RemoveUnusedSelectors():\n %v, \n\n want:\n %v", clearGot, clearWant)
+					showDiff(clearGot, clearWant)
 				}
 			}
 		})
 	}
 
+}
+
+func showDiff(text1, text2 string) {
+	dmp := diffmatchpatch.New()
+	// Compute the diff between the two strings.
+	diffs := dmp.DiffMain(text1, text2, false)
+
+	// Optionally, cleanup the diff for better readability.
+	dmp.DiffCleanupSemantic(diffs)
+
+	// Print out the differences.
+	fmt.Println(dmp.DiffPrettyText(diffs))
 }
 
 func cleanString(s string) string {

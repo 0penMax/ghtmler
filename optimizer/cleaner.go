@@ -19,6 +19,21 @@ func (qs *quickSelectors) isContain(selector string) bool {
 	return qs.data[selector]
 }
 
+func (qs *quickSelectors) filterSelectors(selectors []string) []string {
+	var filtered []string
+	for _, sl := range selectors {
+		tokens := tokenizeCSSSelector(sl)
+		for _, token := range tokens {
+			if qs.isContain(token) {
+				filtered = append(filtered, sl)
+				break
+			}
+		}
+	}
+
+	return filtered
+}
+
 func RemoveUnusedSelectors(cssContent css.Stylesheet, usedSelectors []Selector) css.Stylesheet {
 	var qs quickSelectors
 	qs.init(usedSelectors)
@@ -37,7 +52,7 @@ func RemoveUnusedSelectors(cssContent css.Stylesheet, usedSelectors []Selector) 
 			newCss.Rules = append(newCss.Rules, rule)
 			continue
 		}
-		if fs := filterSelectors(rule.Selectors, qs); fs != nil {
+		if fs := qs.filterSelectors(rule.Selectors); fs != nil {
 			rule.Selectors = fs
 			newCss.Rules = append(newCss.Rules, rule)
 		}
@@ -50,27 +65,13 @@ func clearRuleSubrules(rule *css.Rule, usedSelectors quickSelectors) *css.Rule {
 	rule.Rules = nil
 
 	for _, erule := range embRules {
-		if fs := filterSelectors(erule.Selectors, usedSelectors); fs != nil {
+		if fs := usedSelectors.filterSelectors(erule.Selectors); fs != nil {
 			erule.Selectors = fs
 			rule.Rules = append(rule.Rules, erule)
 		}
 	}
 
-	rule.Selectors = filterSelectors(rule.Selectors, usedSelectors)
+	rule.Selectors = usedSelectors.filterSelectors(rule.Selectors)
 
 	return rule
-}
-
-func filterSelectors(sls []string, mustContain quickSelectors) []string {
-	var filtered []string
-	for _, sl := range sls {
-		tokens := tokenizeCSSSelector(sl)
-		for _, token := range tokens {
-			if mustContain.isContain(token) {
-				filtered = append(filtered, sl)
-			}
-		}
-	}
-
-	return filtered
 }
