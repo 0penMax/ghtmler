@@ -34,7 +34,7 @@ type Rule struct {
 	Prelude string
 
 	// Qualified Rule selectors parsed from prelude
-	Selectors []string
+	Selectors []Selector
 
 	// Style properties
 	Declarations []*Declaration
@@ -51,6 +51,14 @@ func NewRule(kind RuleKind) *Rule {
 	return &Rule{
 		Kind: kind,
 	}
+}
+
+func (rule *Rule) joinSelectors(sep string) string {
+	strs := make([]string, len(rule.Selectors))
+	for i, v := range rule.Selectors {
+		strs[i] = v.String()
+	}
+	return strings.Join(strs, sep)
 }
 
 // Returns string representation of rule kind
@@ -130,7 +138,7 @@ func (rule *Rule) Diff(other *Rule) []string {
 	}
 
 	if len(rule.Selectors) != len(other.Selectors) {
-		result = append(result, fmt.Sprintf("Selectors: %v | %v", strings.Join(rule.Selectors, ", "), strings.Join(other.Selectors, ", ")))
+		result = append(result, fmt.Sprintf("Selectors: %v | %v", rule.joinSelectors(", "), other.joinSelectors(", ")))
 	} else {
 		for i, sel := range rule.Selectors {
 			if sel != other.Selectors[i] {
@@ -172,7 +180,7 @@ func (rule *Rule) String() string {
 			if i != 0 {
 				result += ", "
 			}
-			result += sel
+			result += sel.String()
 		}
 	} else {
 		// AtRule

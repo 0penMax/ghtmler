@@ -43,7 +43,7 @@ p > a {
 	expectedRule := &Rule{
 		Kind:      QualifiedRule,
 		Prelude:   "p > a",
-		Selectors: []string{"p > a"},
+		Selectors: []Selector{"p > a"},
 		Declarations: []*Declaration{
 			{
 				Property: "color",
@@ -80,7 +80,7 @@ p > a {
 	expectedRule := &Rule{
 		Kind:      QualifiedRule,
 		Prelude:   "p > a",
-		Selectors: []string{"p > a"},
+		Selectors: []Selector{"p > a"},
 		Declarations: []*Declaration{
 			{
 				Property:  "color",
@@ -128,7 +128,7 @@ body,
 	expectedRule1 := &Rule{
 		Kind:      QualifiedRule,
 		Prelude:   "table, tr, td",
-		Selectors: []string{"table", "tr", "td"},
+		Selectors: []Selector{"table", "tr", "td"},
 		Declarations: []*Declaration{
 			{
 				Property: "padding",
@@ -142,7 +142,7 @@ body,
 		Prelude: `body,
   h1,   h2,
     h3`,
-		Selectors: []string{"body", "h1", "h2", "h3"},
+		Selectors: []Selector{"body", "h1", "h2", "h3"},
 		Declarations: []*Declaration{
 			{
 				Property: "color",
@@ -248,7 +248,7 @@ func TestAtRuleDocument(t *testing.T) {
 			{
 				Kind:      QualifiedRule,
 				Prelude:   "body",
-				Selectors: []string{"body"},
+				Selectors: []Selector{"body"},
 				Declarations: []*Declaration{
 					{
 						Property: "color",
@@ -394,7 +394,7 @@ func TestAtRuleKeyframes(t *testing.T) {
 			{
 				Kind:      QualifiedRule,
 				Prelude:   "0%",
-				Selectors: []string{"0%"},
+				Selectors: []Selector{"0%"},
 				Declarations: []*Declaration{
 					{
 						Property: "top",
@@ -409,7 +409,7 @@ func TestAtRuleKeyframes(t *testing.T) {
 			{
 				Kind:      QualifiedRule,
 				Prelude:   "100%",
-				Selectors: []string{"100%"},
+				Selectors: []Selector{"100%"},
 				Declarations: []*Declaration{
 					{
 						Property: "top",
@@ -455,7 +455,7 @@ func TestAtRuleMedia(t *testing.T) {
 			{
 				Kind:      QualifiedRule,
 				Prelude:   "body",
-				Selectors: []string{"body"},
+				Selectors: []Selector{"body"},
 				Declarations: []*Declaration{
 					{
 						Property: "line-height",
@@ -545,7 +545,7 @@ func TestAtRuleSupports(t *testing.T) {
 					{
 						Kind:      QualifiedRule,
 						Prelude:   "0%",
-						Selectors: []string{"0%"},
+						Selectors: []Selector{"0%"},
 						Declarations: []*Declaration{
 							{
 								Property: "top",
@@ -560,7 +560,7 @@ func TestAtRuleSupports(t *testing.T) {
 					{
 						Kind:      QualifiedRule,
 						Prelude:   "100%",
-						Selectors: []string{"100%"},
+						Selectors: []Selector{"100%"},
 						Declarations: []*Declaration{
 							{
 								Property: "top",

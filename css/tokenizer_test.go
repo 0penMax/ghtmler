@@ -1,4 +1,4 @@
-package optimizer
+package css
 
 import (
 	"reflect"
@@ -45,7 +45,8 @@ func TestTokenizeCSSSelector(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		result := tokenizeCSSSelector(tc.input)
+		s := Selector(tc.input)
+		result := s.Tokenize()
 		if !reflect.DeepEqual(result, tc.expected) {
 			t.Errorf("For input %q,\nexpected tokens %v,\nbut got       %v", tc.input, tc.expected, result)
 		}
