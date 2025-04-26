@@ -6,6 +6,8 @@ import (
 	"testing"
 )
 
+//TODO add more tests in this file
+
 func TestGetAllClasses(t *testing.T) {
 	type args struct {
 		htmlCode string
