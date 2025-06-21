@@ -69,6 +69,42 @@ func GetCSSFileNamesFromHtml(r io.Reader) ([]CssFile, error) {
 	}
 }
 
+type JsFile struct {
+	fileName string
+}
+
+// TODO write test
+// TODO combine with css search
+func GetJSFileNamesFromHtml(r io.Reader) ([]JsFile, error) {
+	var jsFiles []JsFile
+	tokenizer := html.NewTokenizer(r)
+
+	for {
+		tokenType := tokenizer.Next()
+		switch tokenType {
+		case html.ErrorToken:
+			err := tokenizer.Err()
+			if err == io.EOF {
+				return jsFiles, nil
+			}
+			return nil, err
+		case html.StartTagToken, html.SelfClosingTagToken:
+			token := tokenizer.Token()
+			if token.Data == "script" {
+				var src string
+				for _, attr := range token.Attr {
+					if attr.Key == "src" {
+						src = attr.Val
+					}
+				}
+				if src != "" {
+					jsFiles = append(jsFiles, JsFile{fileName: getFileName(src)})
+				}
+			}
+		}
+	}
+}
+
 func GetAllSelectors(htmlCode string) ([]Selector, error) {
 	doc, err := html.Parse(strings.NewReader(htmlCode))
 	if err != nil {
