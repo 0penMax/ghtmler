@@ -34,75 +34,31 @@ func getFileName(fullPath string) string {
 	return filepath.Base(fullPath)
 }
 
-func GetCSSFileNamesFromHtml(r io.Reader) ([]CssFile, error) {
+//TODO think, maybe i can combine CssFile and JsFile in one universal struct
+
+func GetCssAndJsFileNamesFromHtml(r io.Reader) ([]CssFile, []JsFile, error) {
+	var functions []func(token html.Token) injectedFile
+	functions = append(functions, getCSSFileNames, GetJSFileNames)
+	files, err := getInjectedFilesFromHtml(r, functions)
+	if err != nil {
+		return nil, nil, err
+	}
 	var cssFiles []CssFile
-	tokenizer := html.NewTokenizer(r)
-
-	for {
-		tokenType := tokenizer.Next()
-		switch tokenType {
-		case html.ErrorToken:
-			err := tokenizer.Err()
-			if err == io.EOF {
-				return cssFiles, nil
-			}
-			return nil, err
-		case html.StartTagToken, html.SelfClosingTagToken:
-			token := tokenizer.Token()
-			if token.Data == "link" {
-				var isStylesheet bool
-				var href string
-				for _, attr := range token.Attr {
-					if attr.Key == "rel" && attr.Val == "stylesheet" {
-						isStylesheet = true
-					}
-					if attr.Key == "href" {
-						href = attr.Val
-					}
-				}
-				if isStylesheet && href != "" {
-
-					cssFiles = append(cssFiles, CssFile{fileName: getFileName(href)})
-				}
-			}
+	var jsFiles []JsFile
+	for _, file := range files {
+		switch file.fType {
+		case fTypeCss:
+			cssFiles = append(cssFiles, CssFile{fileName: file.fileName})
+		case fTypeJs:
+			jsFiles = append(jsFiles, JsFile{fileName: file.fileName})
 		}
 	}
+
+	return cssFiles, jsFiles, nil
 }
 
 type JsFile struct {
 	fileName string
-}
-
-// TODO write test
-// TODO combine with css search
-func GetJSFileNamesFromHtml(r io.Reader) ([]JsFile, error) {
-	var jsFiles []JsFile
-	tokenizer := html.NewTokenizer(r)
-
-	for {
-		tokenType := tokenizer.Next()
-		switch tokenType {
-		case html.ErrorToken:
-			err := tokenizer.Err()
-			if err == io.EOF {
-				return jsFiles, nil
-			}
-			return nil, err
-		case html.StartTagToken, html.SelfClosingTagToken:
-			token := tokenizer.Token()
-			if token.Data == "script" {
-				var src string
-				for _, attr := range token.Attr {
-					if attr.Key == "src" {
-						src = attr.Val
-					}
-				}
-				if src != "" {
-					jsFiles = append(jsFiles, JsFile{fileName: getFileName(src)})
-				}
-			}
-		}
-	}
 }
 
 func GetAllSelectors(htmlCode string) ([]Selector, error) {

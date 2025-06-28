@@ -88,7 +88,7 @@ func BuildGthmlFile(file string, isLiveReload bool, minifyParams minify.Params) 
 
 	r := strings.NewReader(strings.Join(content, ""))
 
-	cssPaths, err := optimizer.GetCSSFileNamesFromHtml(r)
+	cssPaths, _, err := optimizer.GetCssAndJsFileNamesFromHtml(r)
 
 	ghtmlFile := GhtmlFile{
 		filename:     fname,
