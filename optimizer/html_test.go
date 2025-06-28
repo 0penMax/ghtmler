@@ -326,7 +326,7 @@ func TestGetCSSFileNamesFromHtml(t *testing.T) {
 
 	for _, test := range tests {
 		r := strings.NewReader(test.html)
-		cssFiles, err := GetCSSFileNamesFromHtml(r)
+		cssFiles, _, err := GetCssAndJsFileNamesFromHtml(r)
 		if test.shouldFail {
 			if err == nil {
 				t.Errorf("Expected an error for input: %s", test.html)
