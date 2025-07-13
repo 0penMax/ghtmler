@@ -1,6 +1,7 @@
 package optimizer
 
 import (
+	"golang.org/x/net/html"
 	"reflect"
 	"strings"
 	"testing"
@@ -343,6 +344,54 @@ func TestGetCSSFileNamesFromHtml(t *testing.T) {
 					t.Errorf("Expected CSS file %s, got %s for input: %s", css, cssFiles[i], test.html)
 				}
 			}
+		}
+	}
+}
+
+func TestGetJSFileNames(t *testing.T) {
+	tests := []struct {
+		token    html.Token
+		expected injectedFile
+	}{
+		{
+			token: html.Token{
+				Data: "script",
+				Attr: []html.Attribute{
+					{Key: "src", Val: "script.js"},
+				},
+			},
+			expected: injectedFile{fileName: "script.js", fType: fTypeJs},
+		}, {
+			token: html.Token{
+				Data: "script",
+				Attr: []html.Attribute{
+					{Key: "src", Val: "./somewhere/dir/script.js"},
+				},
+			},
+			expected: injectedFile{fileName: "script.js", fType: fTypeJs},
+		},
+		{
+			token: html.Token{
+				Data: "script",
+				Attr: []html.Attribute{},
+			},
+			expected: injectedFile{fType: fTypeNone},
+		},
+		{
+			token: html.Token{
+				Data: "div", // Not a script tag
+				Attr: []html.Attribute{
+					{Key: "src", Val: "not-a-script.js"},
+				},
+			},
+			expected: injectedFile{fType: fTypeNone},
+		},
+	}
+
+	for _, test := range tests {
+		result := GetJSFileNames(test.token)
+		if result != test.expected {
+			t.Errorf("For token %+v, expected %+v, but got %+v", test.token, test.expected, result)
 		}
 	}
 }
