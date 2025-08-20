@@ -60,7 +60,6 @@ func getCSSFileNames(token html.Token) injectedFile {
 	return injectedFile{fType: fTypeNone}
 }
 
-// TODO write test
 func GetJSFileNames(token html.Token) injectedFile {
 	if token.Data == "script" {
 		var src string

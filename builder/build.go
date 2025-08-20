@@ -25,6 +25,7 @@ type GhtmlFile struct {
 	filename     string
 	content      []string
 	cssFiles     []optimizer.CssFile
+	jsFiles      []optimizer.JsFile
 	isLiveReload bool
 	minifyParams minify.Params
 }

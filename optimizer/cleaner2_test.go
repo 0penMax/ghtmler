@@ -9,7 +9,6 @@ import (
 	"testing"
 )
 
-// TODO add more tests for difficult selectors like '.row > *'
 func TestRemoveUnusedSelectors2(t *testing.T) {
 
 	type args struct {
