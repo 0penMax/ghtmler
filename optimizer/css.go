@@ -13,17 +13,38 @@ type CssFile struct {
 	content  string
 }
 
-func (f CssFile) GetContentPath() string {
+func (f *CssFile) Process(usedSelectors []Selector, params minify.Params) error {
+	if params.IsOptiMiniCss() || params.IsOptimizeCss {
+		err := f.optimize(usedSelectors)
+		if err != nil {
+			return err
+		}
+	}
+	if params.IsOptiMiniCss() || params.IsMinifyCss {
+		err := f.minimize()
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (f *CssFile) Save() error {
+	return utils.SaveToFile(f.getSavePath(), f.content)
+}
+
+func (f *CssFile) getContentPath() string {
 	return filepath.Join(staticCssPath, f.fileName)
 }
 
-func (f CssFile) GetSavePath() string {
+func (f *CssFile) getSavePath() string {
 	return filepath.Join(distStaticCssPath, f.fileName)
 }
 
-func (f CssFile) GetContent() (string, error) {
+func (f *CssFile) getContent() (string, error) {
 	if f.content == "" {
-		cssContent, err := utils.ReadAllFile(f.GetContentPath())
+		cssContent, err := utils.ReadAllFile(f.getContentPath())
 		if err != nil {
 			return "", err
 		}
@@ -34,41 +55,24 @@ func (f CssFile) GetContent() (string, error) {
 	return f.content, nil
 }
 
-func (f CssFile) GetOptimizedContent(usedSelectors []Selector) (string, error) {
-	cssContent, err := f.GetContent()
-	if err != nil {
-		return "", err
-	}
-
-	styles, err := css.Parse(cssContent)
-	if err != nil {
-		return "", err
-	}
-	OptimizedStyles := RemoveUnusedSelectors(*styles, usedSelectors)
-
-	return OptimizedStyles.String(), nil
-}
-
-func (f CssFile) GetOptimizedAndMinifiedContent(usedSelectors []Selector) (string, error) {
-	c, err := f.GetOptimizedContent(usedSelectors)
-	if err != nil {
-		return "", err
-	}
-
-	return minify.MinifyCSS(c)
-}
-
-func (f CssFile) SaveOptimizedContent(usedSelectors []Selector) error {
-	c, err := f.GetOptimizedContent(usedSelectors)
+func (f *CssFile) optimize(usedSelectors []Selector) error {
+	cssContent, err := f.getContent()
 	if err != nil {
 		return err
 	}
 
-	return utils.SaveToFile(f.GetSavePath(), c)
+	styles, err := css.Parse(cssContent)
+	if err != nil {
+		return err
+	}
+	OptimizedStyles := RemoveUnusedSelectors(*styles, usedSelectors)
+	f.content = OptimizedStyles.String()
+
+	return nil
 }
 
-func (f CssFile) SaveMinifiedContent() error {
-	c, err := f.GetContent()
+func (f *CssFile) minimize() error {
+	c, err := f.getContent()
 	if err != nil {
 		return err
 	}
@@ -78,22 +82,7 @@ func (f CssFile) SaveMinifiedContent() error {
 		return err
 	}
 
-	return utils.SaveToFile(f.GetSavePath(), c)
-}
+	f.content = c
 
-func (f CssFile) SaveContent() error {
-	c, err := f.GetContent()
-	if err != nil {
-		return err
-	}
-	return utils.SaveToFile(f.GetSavePath(), c)
-}
-
-func (f CssFile) SaveOptimizedAndMinifiedContent(usedSelectors []Selector) error {
-	c, err := f.GetOptimizedAndMinifiedContent(usedSelectors)
-	if err != nil {
-		return err
-	}
-
-	return utils.SaveToFile(f.GetSavePath(), c)
+	return nil
 }

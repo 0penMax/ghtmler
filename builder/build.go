@@ -44,29 +44,14 @@ func (g *GhtmlFile) save() error {
 	selectors, err := optimizer.GetAllSelectors(strings.Join(g.content, ""))
 
 	for _, cssFile := range g.cssFiles {
-
-		if g.minifyParams.IsOptiMiniCss() {
-			err = cssFile.SaveOptimizedAndMinifiedContent(selectors)
-			if err != nil {
-				return err
-			}
-		} else if g.minifyParams.IsOptimizeCss {
-			err = cssFile.SaveOptimizedContent(selectors) //TODO test optimize content
-			if err != nil {
-				return err
-			}
-		} else if g.minifyParams.IsMinifyCss {
-			err = cssFile.SaveMinifiedContent()
-			if err != nil {
-				return err
-			}
-		} else {
-			err = cssFile.SaveContent()
-			if err != nil {
-				return err
-			}
+		err = cssFile.Process(selectors, g.minifyParams)
+		if err != nil {
+			return err
 		}
-
+		err = cssFile.Save()
+		if err != nil {
+			return err
+		}
 	}
 
 	if g.isLiveReload {
