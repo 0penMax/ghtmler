@@ -27,7 +27,7 @@ type GhtmlFile struct {
 	cssFiles     []optimizer.CssFile
 	jsFiles      []optimizer.JsFile
 	isLiveReload bool
-	minifyParams minify.Params
+	minifyParams minify.Config
 }
 
 func (g *GhtmlFile) getDistFilepath() string {
@@ -44,7 +44,7 @@ func (g *GhtmlFile) save() error {
 	selectors, err := optimizer.GetAllSelectors(strings.Join(g.content, ""))
 
 	for _, cssFile := range g.cssFiles {
-		err = cssFile.Process(selectors, g.minifyParams)
+		err = cssFile.Process(selectors, g.minifyParams.Css)
 		if err != nil {
 			return err
 		}
@@ -65,7 +65,7 @@ func (g *GhtmlFile) save() error {
 	return nil
 }
 
-func BuildGthmlFile(file string, isLiveReload bool, minifyParams minify.Params) (GhtmlFile, error) {
+func BuildGthmlFile(file string, isLiveReload bool, minifyParams minify.Config) (GhtmlFile, error) {
 	content, err := buildHtml(file)
 	if err != nil {
 		return GhtmlFile{}, errors.New(fmt.Sprintf("error build from file %s: %s", file, err.Error()))
@@ -88,7 +88,7 @@ func BuildGthmlFile(file string, isLiveReload bool, minifyParams minify.Params) 
 
 }
 
-func Build(ghmlFiles []string, isLiveReload bool, minifyParam minify.Params) error {
+func Build(ghmlFiles []string, isLiveReload bool, minifyParam minify.Config) error {
 
 	for _, f := range ghmlFiles {
 

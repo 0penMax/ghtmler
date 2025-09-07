@@ -14,13 +14,13 @@ type CssFile struct {
 }
 
 func (f *CssFile) Process(usedSelectors []Selector, params minify.Params) error {
-	if params.IsOptiMiniCss() || params.IsOptimizeCss {
+	if params.IsOptimize {
 		err := f.optimize(usedSelectors)
 		if err != nil {
 			return err
 		}
 	}
-	if params.IsOptiMiniCss() || params.IsMinifyCss {
+	if params.IsMinify {
 		err := f.minimize()
 		if err != nil {
 			return err

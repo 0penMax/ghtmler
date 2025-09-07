@@ -7,19 +7,14 @@ import (
 	"github.com/tdewolff/minify/v2/css"
 )
 
+type Config struct {
+	Js  Params
+	Css Params
+}
+
 type Params struct {
-	IsMinifyCss   bool
-	IsOptimizeCss bool
-	IsMinifyJs    bool
-	IsOptimizeJs  bool
-}
-
-func (p Params) IsOptiMiniCss() bool {
-	return p.IsMinifyCss && p.IsOptimizeCss
-}
-
-func (p Params) IsOptiMiniJs() bool {
-	return p.IsMinifyJs && p.IsOptimizeJs
+	IsMinify   bool
+	IsOptimize bool
 }
 
 func MinifyCSS(cssContent string) (string, error) {

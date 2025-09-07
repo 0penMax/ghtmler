@@ -2,12 +2,11 @@ package main
 
 import (
 	"errors"
-	"flag"
 	"fmt"
 	"goHtmlBuilder/builder"
+	"goHtmlBuilder/configs"
 	"goHtmlBuilder/fsPatrol"
 	"goHtmlBuilder/httpServer"
-	"goHtmlBuilder/minify"
 	ws_server "goHtmlBuilder/wsServer"
 	"log"
 	"os"
@@ -15,6 +14,8 @@ import (
 )
 
 func main() {
+	//TODO think about system where css and js incude inside html file
+	//TODO think about system where all images from page optimize by size and transform in sprite(one big image)
 	f, err := os.OpenFile("error.log", os.O_RDWR|os.O_CREATE|os.O_APPEND, 0644)
 	if err != nil {
 		log.Fatalf("error opening file: %v", err)
@@ -27,33 +28,6 @@ func main() {
 
 	log.SetOutput(f)
 
-	var isServe bool
-	var isMinifyCss bool
-	var isOptimizeCss bool
-	var isOMCss bool
-
-	var isOptimizeJs bool
-	var isMinifyJs bool
-
-	flag.BoolVar(&isServe, "serve", false, "auto serve file updates, you don't need to reexecute ghtmler")
-
-	flag.BoolVar(&isMinifyCss, "minifycss", false, "minify css, only for build, ignoring for serve")
-	flag.BoolVar(&isMinifyCss, "mcss", false, "minify css, only for build, ignoring for serve")
-
-	flag.BoolVar(&isOptimizeCss, "optimizecss", false, "optimize css, only for build, ignoring for serve")
-	flag.BoolVar(&isOptimizeCss, "ocss", false, "optimize css, only for build, ignoring for serve")
-
-	flag.BoolVar(&isOMCss, "omcss", false, "optimize and minify  css, only for build, ignoring for serve")
-
-	flag.BoolVar(&isMinifyJs, "minifyjs", false, "minify js, only for build, ignoring for serve")
-	flag.BoolVar(&isMinifyJs, "mjs", false, "minify js, only for build, ignoring for serve")
-
-	// TODO realize
-	flag.BoolVar(&isOptimizeJs, "optimizejs", false, "optimize js, only for build, ignoring for serve")
-	flag.BoolVar(&isOptimizeJs, "ojs", false, "optimize js, only for build, ignoring for serve")
-
-	flag.Parse()
-
 	createNecessaryFolders()
 
 	State, errs := fsPatrol.GetState()
@@ -61,31 +35,16 @@ func main() {
 		log.Fatal(errs)
 	}
 
-	var p minify.Params
+	//TODO create additional json config
+	config := configs.GetFlagsConfig()
 
-	if isOMCss {
-		p = minify.Params{
-			IsMinifyCss:   true,
-			IsMinifyJs:    isMinifyJs,
-			IsOptimizeCss: true,
-			IsOptimizeJs:  isOptimizeJs,
-		}
-	} else {
-		p = minify.Params{
-			IsMinifyCss:   isMinifyCss,
-			IsMinifyJs:    isMinifyJs,
-			IsOptimizeCss: isOptimizeCss,
-			IsOptimizeJs:  isOptimizeJs,
-		}
-	}
-
-	err = builder.Build(State.GetGhtmlFiles(), isServe, p)
+	err = builder.Build(State.GetGhtmlFiles(), config.IsServe, config.Minify)
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
 
-	if isServe {
+	if config.IsServe {
 		fmt.Println("serve...")
 		ws_server.StartServer()
 		httpServer.RunServer()
@@ -104,10 +63,7 @@ func main() {
 
 			if fsPatrol.IsDiffState(prevState, currentState) {
 				fmt.Println("rebuild")
-				err := builder.Build(currentState.GetGhtmlFiles(), isServe, minify.Params{
-					IsMinifyCss: false,
-					IsMinifyJs:  false,
-				})
+				err := builder.Build(currentState.GetGhtmlFiles(), config.IsServe, config.Minify)
 				if err != nil {
 					fmt.Println(err)
 					return
